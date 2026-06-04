@@ -15,7 +15,6 @@ class AdminProductPage extends StatefulWidget {
 class _AdminProductPageState extends State<AdminProductPage> {
   int _selectedIndex = 0;
 
-  // Menggunakan getter agar token selalu terbaru saat build
   List<Widget> _pages(String token) => [
         _buildProductList(token),
         _buildAdminProfile(),
@@ -26,13 +25,13 @@ class _AdminProductPageState extends State<AdminProductPage> {
       future: ProductService.getAllProducts(token),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Terjadi kesalahan: ${snapshot.error}'));
+          return Center(child: Text('Terjadi kesalahan: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Belum ada produk untuk dikelola.'));
+          return const Center(child: Text('Belum ada produk untuk dikelola.', style: TextStyle(color: Colors.white70)));
         }
 
         final products = snapshot.data!;
@@ -44,29 +43,35 @@ class _AdminProductPageState extends State<AdminProductPage> {
             final product = products[index];
             
             return Card(
-              elevation: 3,
-              margin: const EdgeInsets.symmetric(vertical: 8),
+              color: const Color(0xFF1A1A1A), // Card gelap senada login
+              elevation: 0,
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ListTile(
+                contentPadding: const EdgeInsets.all(10),
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: product.imageUrl.isNotEmpty
                       ? Image.network(
                           product.imageUrl,
-                          width: 50, height: 50, fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image),
+                          width: 55, height: 55, fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.white24),
                         )
-                      : const Icon(Icons.image_not_supported, size: 50),
+                      : const Icon(Icons.image_not_supported, size: 50, color: Colors.white24),
                 ),
                 title: Text(
                   product.name, 
-                  style: const TextStyle(fontWeight: FontWeight.bold)
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
                 ),
-                subtitle: Text('Tipe: ${product.type} | Stok: ${product.stock}'),
+                subtitle: Text(
+                  'Tipe: ${product.type} | Stok: ${product.stock}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      icon: const Icon(Icons.edit_note, color: Colors.blueAccent, size: 28),
                       onPressed: () async {
                         final result = await Navigator.push(
                           context,
@@ -78,7 +83,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                       onPressed: () => _confirmDelete(token, product.id!),
                     ),
                   ],
@@ -99,28 +104,48 @@ class _AdminProductPageState extends State<AdminProductPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: user?['avatar_url'] != null 
-                ? NetworkImage(user!['avatar_url']) 
-                : null,
-            child: user?['avatar_url'] == null ? const Icon(Icons.person, size: 50) : null,
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.blueAccent, width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 60,
+              backgroundColor: const Color(0xFF1A1A1A),
+              backgroundImage: user?['avatar_url'] != null 
+                  ? NetworkImage(user!['avatar_url']) 
+                  : null,
+              child: user?['avatar_url'] == null 
+                  ? const Icon(Icons.person, size: 60, color: Colors.white54) 
+                  : null,
+            ),
           ),
           const SizedBox(height: 20),
-          Text(user?['name'] ?? 'Admin', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          Text(user?['email'] ?? '', style: const TextStyle(color: Colors.grey)),
-          const SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: () {
-              authProvider.logout();
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-            icon: const Icon(Icons.logout),
-            label: const Text('Logout Admin'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red, 
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)
+          Text(
+            user?['name'] ?? 'Admin', 
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)
+          ),
+          Text(
+            user?['email'] ?? '', 
+            style: const TextStyle(color: Colors.white54, fontSize: 16)
+          ),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: 200,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                authProvider.logout();
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+              icon: const Icon(Icons.logout),
+              label: const Text('LOGOUT ADMIN', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent, 
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
             ),
           )
         ],
@@ -132,10 +157,14 @@ class _AdminProductPageState extends State<AdminProductPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Produk?'),
-        content: const Text('Data produk akan dihapus secara permanen.'),
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text('Hapus Produk?', style: TextStyle(color: Colors.white)),
+        content: const Text('Data produk akan dihapus secara permanen.', style: TextStyle(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text('Batal', style: TextStyle(color: Colors.blueAccent))
+          ),
           TextButton(
             onPressed: () async {
               await ProductService.deleteProduct(token, id);
@@ -144,7 +173,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
                 setState(() {});
               }
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            child: const Text('Hapus', style: TextStyle(color: Colors.redAccent)),
           ),
         ],
       ),
@@ -156,27 +185,40 @@ class _AdminProductPageState extends State<AdminProductPage> {
     final token = Provider.of<AuthProvider>(context).token;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0C0C0D), // Tema gelap
       appBar: AppBar(
-        title: Text(_selectedIndex == 0 ? 'Daftar Produk Admin' : 'Profil Admin'),
+        backgroundColor: const Color(0xFF0C0C0D),
+        elevation: 0,
         centerTitle: true,
+        toolbarHeight: 80, // Konsisten dengan User Page
+        // 1. UPDATE: TULISAN DIGANTI LOGO
+        title: Image.asset(
+          'assets/images/logo_retail.png',
+          height: 90,
+          fit: BoxFit.contain,
+        ),
       ),
       body: _pages(token!)[_selectedIndex],
       floatingActionButton: _selectedIndex == 0 
         ? FloatingActionButton(
+            backgroundColor: Colors.blueAccent,
             onPressed: () async {
-              // PERBAIKAN: Pastikan memanggil tanpa 'const'
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AdminProductForm()),
+                MaterialPageRoute(builder: (context) => const AdminProductForm()),
               );
               if (result == true) setState(() {});
             },
-            child: const Icon(Icons.add),
+            child: const Icon(Icons.add, color: Colors.white, size: 30),
           )
         : null,
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF0C0C0D),
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
+        selectedItemColor: Colors.blueAccent,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.inventory_2), label: 'Products'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
