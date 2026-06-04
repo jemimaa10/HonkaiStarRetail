@@ -32,7 +32,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/wallet', walletRoutes);
 
-// Jalankan server
+// Jalankan serverrrrr
 app.listen(PORT, () => {
     console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
 });
