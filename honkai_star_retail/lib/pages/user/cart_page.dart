@@ -19,32 +19,58 @@ class _CartPageState extends State<CartPage> {
     return double.tryParse(value.toString()) ?? 0.0;
   }
 
-  // Fungsi Checkout yang sudah diperbaiki
+  // LOGIK FIX: Mengecek status success dari Service
   Future<void> _handleCheckout(String token) async {
     setState(() => isCheckingOut = true);
 
     try {
-      final response = await CartService.checkout(token);
+      final result = await CartService.checkout(token);
       
       if (mounted) {
-        // Asumsi backend mengembalikan success boolean atau status 200
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Checkout Berhasil!'), backgroundColor: Colors.green),
-        );
+        // CEK APAKAH BENAR-BENAR SUKSES (Bukan cuma dapet response)
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Checkout Berhasil!'), 
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
 
-        // KUNCI UTAMA: Mengirimkan nilai 'true' saat kembali ke MainNavigation
-        // agar tab Inventory otomatis refresh datanya.
-        Navigator.pop(context, true); 
+          // Kembalikan 'true' agar MainNavigation refresh saldo & inventory
+          Navigator.pop(context, true); 
+        } else {
+          // JIKA GAGAL (Contoh: Saldo Kurang atau Stok Habis)
+          _showErrorDialog(result['message'] ?? 'Checkout Gagal');
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal Checkout: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Terjadi kesalahan: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
       if (mounted) setState(() => isCheckingOut = false);
     }
+  }
+
+  // Dialog estetik untuk memberitahu jika saldo kurang/error
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text("Transaksi Ditolak", style: TextStyle(color: Colors.redAccent)),
+        content: Text(message, style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.blueAccent)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -53,23 +79,26 @@ class _CartPageState extends State<CartPage> {
     final token = authProvider.token;
 
     if (token == null) {
-      return const Scaffold(body: Center(child: Text("Sesi habis")));
+      return const Scaffold(backgroundColor: Colors.black, body: Center(child: Text("Sesi habis", style: TextStyle(color: Colors.white))));
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Keranjang Belanja')),
+      backgroundColor: Colors.black, // Tema Gelap
+      appBar: AppBar(
+        title: const Text('Keranjang Belanja'),
+        backgroundColor: const Color(0xFF0C0C0D),
+      ),
       body: FutureBuilder<List<dynamic>>(
-        // Gunakan future agar data selalu fresh saat halaman dibuka
         future: CartService.getCartItems(token),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Gagal mengambil data keranjang'));
+            return const Center(child: Text('Gagal mengambil data keranjang', style: TextStyle(color: Colors.white)));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Keranjang kamu masih kosong'));
+            return const Center(child: Text('Keranjang kamu masih kosong', style: TextStyle(color: Colors.white54)));
           }
 
           final cartItems = snapshot.data!;
@@ -84,6 +113,7 @@ class _CartPageState extends State<CartPage> {
             children: [
               Expanded(
                 child: ListView.builder(
+                  padding: const EdgeInsets.all(10),
                   itemCount: cartItems.length,
                   itemBuilder: (context, index) {
                     final item = cartItems[index];
@@ -91,41 +121,41 @@ class _CartPageState extends State<CartPage> {
                     int qty = int.tryParse(item['quantity'].toString()) ?? 0;
                     double subTotal = price * qty;
 
-                    return ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: item['image_url'] != null && item['image_url'].toString().isNotEmpty
-                            ? Image.network(item['image_url'], width: 50, height: 50, fit: BoxFit.cover, 
-                                errorBuilder: (context, e, s) => const Icon(Icons.broken_image))
-                            : const Icon(Icons.shopping_bag),
-                      ),
-                      title: Text(item['name'] ?? 'Produk'),
-                      subtitle: Text('$qty x ${price.toStringAsFixed(0)} Credits'),
-                      trailing: Text(
-                        '${subTotal.toStringAsFixed(0)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    return Card(
+                      color: const Color(0xFF1A1A1A),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: item['image_url'] != null && item['image_url'].toString().isNotEmpty
+                              ? Image.network(item['image_url'], width: 50, height: 50, fit: BoxFit.cover, 
+                                  errorBuilder: (context, e, s) => const Icon(Icons.broken_image, color: Colors.white24))
+                              : const Icon(Icons.shopping_bag, color: Colors.blueAccent),
+                        ),
+                        title: Text(item['name'] ?? 'Produk', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Text('$qty x ${price.toStringAsFixed(0)} Credits', style: const TextStyle(color: Colors.white70)),
+                        trailing: Text(
+                          subTotal.toStringAsFixed(0),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueAccent),
+                        ),
                       ),
                     );
                   },
                 ),
               ),
               
-              // Bottom Section untuk Total & Button
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  border: const Border(top: BorderSide(color: Colors.white12)),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, -5))
-                  ],
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0C0C0D),
+                  border: Border(top: BorderSide(color: Colors.white12)),
                 ),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Pembayaran:', style: TextStyle(fontSize: 16)),
+                        const Text('Total Pembayaran:', style: TextStyle(fontSize: 16, color: Colors.white)),
                         Text(
                           '${totalGlobal.toStringAsFixed(0)} Credits', 
                           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueAccent)
@@ -138,7 +168,7 @@ class _CartPageState extends State<CartPage> {
                       height: 55,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue, 
+                          backgroundColor: Colors.blueAccent, 
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),

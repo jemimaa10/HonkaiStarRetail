@@ -14,7 +14,6 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  // 1. Tambahkan dua GlobalKey: satu untuk Inventory, satu untuk Wallet
   final GlobalKey<InventoryPageState> _inventoryKey = GlobalKey<InventoryPageState>();
   final GlobalKey<WalletPageState> _walletKey = GlobalKey<WalletPageState>();
 
@@ -23,11 +22,10 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   void initState() {
     super.initState();
-    // 2. Pasang kedua Key ke halaman masing-masing
     _pages = [
       const MarketPage(),
       InventoryPage(key: _inventoryKey), 
-      WalletPage(key: _walletKey), // PENTING: Pasang key wallet di sini
+      WalletPage(key: _walletKey),
       const ProfilePage(),
     ];
   }
@@ -36,31 +34,47 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Star Rail Retail', 
-          style: TextStyle(fontWeight: FontWeight.bold)
-        ),
-        centerTitle: true,
+        backgroundColor: const Color(0xFF0C0C0D),
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () async {
-              final result = await Navigator.pushNamed(context, '/cart');
-
-              if (result == true) {
-                // 3. PAKSA REFRESH KEDUANYA: Barang & Saldo
-                _inventoryKey.currentState?.fetchInventory();
-                _walletKey.currentState?.fetchWallet();
-
-                // Pindah tab ke Inventory agar user langsung lihat hasilnya
-                setState(() {
-                  _selectedIndex = 1;
-                });
-              }
+        centerTitle: true,
+        // 1. NAIKKAN TINGGI TOOLBAR (Default adalah 56)
+        toolbarHeight: 80, 
+        
+        // 2. PERBESAR LOGO
+        title: Container(
+          margin: const EdgeInsets.only(top: 10), // Beri sedikit space dari atas
+          child: Image.asset(
+            'assets/images/logo_retail.png',
+            height: 90, // Ukuran logo sekarang jauh lebih besar
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const Text(
+                "STAR RETAIL",
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              );
             },
           ),
-          const SizedBox(width: 8),
+        ),
+        
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 28),
+              onPressed: () async {
+                final result = await Navigator.pushNamed(context, '/cart');
+
+                if (result == true) {
+                  _inventoryKey.currentState?.fetchInventory();
+                  _walletKey.currentState?.fetchWallet();
+
+                  setState(() {
+                    _selectedIndex = 1;
+                  });
+                }
+              },
+            ),
+          ),
         ],
       ),
 
@@ -70,7 +84,8 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
 
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, 
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: const Color(0xFF0C0C0D),
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
@@ -79,7 +94,8 @@ class _MainNavigationState extends State<MainNavigation> {
         },
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontSize: 12),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.storefront),

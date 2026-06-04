@@ -11,35 +11,84 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: Colors.white.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap, // Menuju Product Detail Page [cite: 39]
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  product.imageUrl, // Link URL saja 
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 50),
+            // 1. BAGIAN GAMBAR
+            AspectRatio(
+              aspectRatio: 1.2, // Sedikit lebih pendek agar memberi ruang teks
+              child: Image.network(
+                product.imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                filterQuality: FilterQuality.high,
+                headers: const {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                  'Referer': 'https://honkai-star-rail.fandom.com/',
+                },
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.white10,
+                  child: const Icon(Icons.broken_image, size: 25, color: Colors.white24),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(product.type, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  const SizedBox(height: 5),
-                  Text('${product.price} Credits', style: const TextStyle(color: AppConstants.primaryColor, fontWeight: FontWeight.bold)),
-                  Text('Stock: ${product.stock}', style: const TextStyle(fontSize: 11, color: Colors.white70)),
-                ],
+
+            // 2. BAGIAN DETAIL (Gunakan Expanded + MainAxisAlignment agar fleksibel)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Mengatur jarak antar teks secara otomatis
+                  children: [
+                    Text(
+                      product.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        fontSize: 12, // Ukuran dikurangi sedikit
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      product.type, 
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white54, fontSize: 9),
+                    ),
+                    // Row untuk Harga dan Stok
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '${product.price.toStringAsFixed(0)}', 
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.blueAccent, 
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'Stock:${product.stock}', // Disingkat 'S' agar lebih hemat ruang
+                          style: const TextStyle(fontSize: 9, color: Colors.white38),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

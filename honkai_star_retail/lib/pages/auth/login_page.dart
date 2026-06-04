@@ -3,9 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
-
-import '../user/main_navigation.dart';
-import '../admin/admin_product_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -22,24 +19,15 @@ class _LoginPageState extends State<LoginPage> {
   // Inisialisasi GoogleSignIn
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId: '225073373774-03uaucl021s0u5es4etaavb7171ka2nv.apps.googleusercontent.com',
-
-
     scopes: ['email', 'profile', 'openid'],
   );
   
   bool isLoading = false;
+  bool _obscurePassword = true; // State untuk kontrol melihat password
 
   bool validateInput() {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       showError('Email dan Password tidak boleh kosong!');
-      return false;
-    }
-    if (!emailController.text.contains('@')) {
-      showError('Format email tidak valid!');
-      return false;
-    }
-    if (passwordController.text.length < 6) {
-      showError('Password minimal harus 6 karakter!');
       return false;
     }
     return true;
@@ -52,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // --- LOGIN BIASA ---
   Future<void> handleLogin() async {
     if (!validateInput()) return;
     setState(() => isLoading = true);
@@ -69,17 +56,15 @@ class _LoginPageState extends State<LoginPage> {
         showError(result['message']);
       }
     } catch (e) {
-      showError('Gagal terhubung ke server. Periksa koneksi Backend.');
+      showError('Gagal terhubung ke server.');
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
-  // --- GOOGLE SIGN IN ---
   Future<void> handleGoogleSignIn() async {
     try {
       setState(() => isLoading = true);
-
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -88,20 +73,14 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // WEB TRICK: Di Web, terkadang idToken ada di googleAuth.idToken 
-      // atau kita bisa gunakan accessToken jika backend kamu mendukungnya.
       final String? tokenToSend = googleAuth.idToken ?? googleAuth.accessToken;
 
       if (tokenToSend == null) {
-        showError("Gagal mendapatkan token dari Google.");
+        showError("Gagal mendapatkan token.");
         return;
       }
 
-      // Kirim ke Backend
-      final result = await AuthService.googleLogin(
-        idToken: tokenToSend, 
-      );
+      final result = await AuthService.googleLogin(idToken: tokenToSend);
 
       if (result['success']) {
         _onLoginSuccess(result['data']);
@@ -110,7 +89,6 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (error) {
       showError("Login Gagal: $error");
-      print("Detail Error: $error");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -127,114 +105,135 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       Navigator.pushReplacementNamed(context, '/market');
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Selamat Datang, ${data['user']['name']}!'),
-        backgroundColor: Colors.green,
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0C0C0D), // Tema gelap
       appBar: AppBar(
-        title: const Text('Trailblazer Login'),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false, // Menghilangkan tombol back jika ada
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // Agar column tidak memakan ruang berlebih
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.auto_awesome_outlined, size: 80, color: Colors.blueAccent),
-              const SizedBox(height: 10),
-              const Text(
-                'Honkai Star Retail',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              // 1. LOGO KUSTOM (Besar & Dominan)
+              Image.asset(
+                'assets/images/logo_retail.png',
+                height: 180,
+                fit: BoxFit.contain,
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 50),
               
+              // Input Email
               TextField(
                 controller: emailController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
                   labelText: 'Email Address',
-                  prefixIcon: Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70),
+                  filled: true,
+                  fillColor: const Color(0xFF1A1A1A),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.white12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blueAccent),
+                  ),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               
+              // Input Password dengan Tombol Mata
               TextField(
                 controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
+                obscureText: _obscurePassword,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(),
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.white54,
+                    ),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFF1A1A1A),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.white12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.blueAccent),
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
               
-              // Tombol Login Biasa
+              // Tombol Login Utama
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
                   onPressed: isLoading ? null : handleLogin,
                   style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   child: isLoading
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                          height: 25,
+                          width: 25,
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
-                      : const Text('LOGIN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : const Text(
+                          'LOGIN', 
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 2)
+                        ),
                 ),
               ),
 
-              const SizedBox(height: 15),
-              const Text("OR", style: TextStyle(color: Colors.grey)),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
+              const Text("OR", style: TextStyle(color: Colors.white54)),
+              const SizedBox(height: 20),
 
-              // Tombol Google Sign In yang sudah dibenahi agar tidak Overflow
+              // Tombol Google (Aset Lokal)
               SizedBox(
                 width: double.infinity,
                 height: 55,
-                child: OutlinedButton(
+                child: OutlinedButton.icon(
                   onPressed: isLoading ? null : handleGoogleSignIn,
+                  icon: Image.asset(
+                    'assets/images/google_logo.png', // Menggunakan aset lokal
+                    height: 24,
+                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.login, color: Colors.white),
+                  ),
+                  label: const Text(
+                    'Masuk dengan Google',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.white24),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.network(
-                        'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
-                        height: 24,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.login, size: 24),
-                      ),
-                      const SizedBox(width: 12),
-                      const Flexible(
-                        child: Text(
-                          'Masuk dengan Google',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
               ),
               
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               
               TextButton(
                 onPressed: () {
@@ -243,7 +242,10 @@ class _LoginPageState extends State<LoginPage> {
                     MaterialPageRoute(builder: (context) => const RegisterPage()),
                   );
                 },
-                child: const Text('Belum punya akun? Daftar di sini'),
+                child: const Text(
+                  'Belum punya akun? Daftar di sini',
+                  style: TextStyle(color: Colors.blueAccent),
+                ),
               ),
             ],
           ),

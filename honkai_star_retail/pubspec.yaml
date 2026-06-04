@@ -5,29 +5,17 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.0 # Pastikan versi SDK Flutter kamu sesuai
+  sdk: ^3.11.0 
 
 dependencies:
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
-  # --- Tambahan Dependencies untuk Project ---
-  
-  # 1. HTTP: Untuk melakukan GET, POST, PUT, DELETE ke Node.js 
   http: ^1.1.0
-
-  # 2. Provider: Untuk manajemen status (Simpan Token, Data User, Cart)
   provider: ^6.1.1
-
-  # 3. Google Sign-In: Syarat External OAuth 
   google_sign_in: ^6.2.1
-
-  # 4. Shared Preferences: Menyimpan Bearer Token agar tidak logout saat app ditutup 
   shared_preferences: ^2.2.2
-
-  # 5. Intl: Untuk memformat angka ke mata uang Credits (Wallet)
   intl: ^0.18.1
 
 dev_dependencies:
@@ -38,15 +26,14 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Tambahkan folder assets jika kamu ingin menyimpan gambar lokal atau ikon khusus
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  # --- PERBAIKAN DI SINI ---
+  # Hapus tanda pagar (#) dan pastikan spasi/indentasi tepat
+  assets:
+    - assets/images/logo_retail.png
+    - assets/images/google_logo.png
+  # -------------------------
 
-  # Syarat UI Design: Menggunakan custom fonts (Misal: Inter atau Roboto) [cite: 59]
   # fonts:
   #   - family: HonkaiFont
   #     fonts:
   #       - asset: assets/fonts/Honkai-Regular.ttf
-  #       - asset: assets/fonts/Honkai-Bold.ttf
-  #         weight: 700
