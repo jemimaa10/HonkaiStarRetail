@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart'; // WAJIB ADA
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/product_service.dart';
@@ -13,8 +13,13 @@ class MarketPage extends StatefulWidget {
 }
 
 class _MarketPageState extends State<MarketPage> {
+  // Key unik untuk memicu rebuild FutureBuilder secara paksa
+  Key _refreshKey = UniqueKey();
+
   Future<void> _refreshProducts() async {
-    setState(() {});
+    setState(() {
+      _refreshKey = UniqueKey();
+    });
   }
 
   @override
@@ -22,48 +27,73 @@ class _MarketPageState extends State<MarketPage> {
     final authProvider = Provider.of<AuthProvider>(context);
     final token = authProvider.token;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Star Rail Market'),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _refreshProducts,
-        child: token == null
-            ? const Center(child: Text('Sesi berakhir'))
-            : FutureBuilder<List<ProductModel>>(
-                future: ProductService.getAllProducts(token),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return const Center(child: Text('Gagal memuat produk'));
-                  }
-                  
-                  final products = snapshot.data ?? [];
-                  return GridView.builder(
-                    padding: const EdgeInsets.all(12),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.7,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
+    return RefreshIndicator(
+      onRefresh: _refreshProducts,
+      child: token == null
+          ? const Center(child: Text('Sesi berakhir, silakan login ulang'))
+          : FutureBuilder<List<ProductModel>>(
+              key: _refreshKey, // Menggunakan key agar UI refresh total saat ditarik
+              future: ProductService.getAllProducts(token),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Gagal memuat produk'),
+                        TextButton(
+                          onPressed: _refreshProducts,
+                          child: const Text('Coba Lagi'),
+                        ),
+                      ],
                     ),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      return ProductCard(
-                        product: products[index],
-                        onTap: () => Navigator.pushNamed(
+                  );
+                }
+                
+                final products = snapshot.data ?? [];
+                
+                if (products.isEmpty) {
+                  return ListView( // Pakai ListView agar RefreshIndicator tetap bekerja
+                    children: const [
+                      SizedBox(height: 200),
+                      Center(child: Text('Tidak ada produk tersedia')),
+                    ],
+                  );
+                }
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  physics: const AlwaysScrollableScrollPhysics(), 
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return ProductCard(
+                      product: product,
+                      onTap: () async {
+                        // Tunggu hasil dari detail page (jika ada pembelian)
+                        await Navigator.pushNamed(
                           context,
                           '/product-detail',
-                          arguments: products[index],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-      ),
+                          arguments: product,
+                        );
+                        // Refresh market saat kembali dari detail untuk update stok terbaru
+                        _refreshProducts();
+                      },
+                    );
+                  },
+                );
+              },
+            ),
     );
   }
 }

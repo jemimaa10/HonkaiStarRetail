@@ -131,6 +131,7 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 // ================= CHECKOUT ALL CART =================
+// ================= CHECKOUT ALL CART =================
 router.post('/checkout', verifyToken, async (req, res) => {
     const connection = await db.getConnection();
     try {
@@ -153,25 +154,41 @@ router.post('/checkout', verifyToken, async (req, res) => {
 
         // 3. Cek Saldo
         const [user] = await connection.execute('SELECT wallet FROM users WHERE id = ?', [req.user.id]);
-        if (user[0].wallet < totalCost) throw new Error('Saldo tidak cukup untuk checkout semua!');
+        if (user[0].wallet < totalCost) throw new Error('Saldo tidak cukup untuk checkout!');
 
-        // 4. Proses: Potong Saldo, Potong Stok, Pindah ke Inventory
+        // 4. PROSES POTONG SALDO (Cukup jalankan 1 kali saja, di luar loop)
+        await connection.execute(
+            'UPDATE users SET wallet = wallet - ? WHERE id = ?', 
+            [totalCost, req.user.id]
+        );
+
+        // 5. CATAT RIWAYAT TRANSAKSI (Sesuai skema database kamu)
+        await connection.execute(
+            'INSERT INTO wallet_transactions (user_id, type, amount, description) VALUES (?, ?, ?, ?)',
+            [req.user.id, 'purchase', totalCost, `Purchase of ${cartItems.length} item(s)`]
+        );
+
+        // 6. Proses: Potong Stok & Pindah ke Inventory
         for (const item of cartItems) {
-            await connection.execute('UPDATE users SET wallet = wallet - ? WHERE id = ?', [totalCost, req.user.id]);
+            // Potong stok produk
             await connection.execute('UPDATE products SET stock = stock - ? WHERE id = ?', [item.quantity, item.product_id]);
+            
+            // Masuk ke inventory (pakai ON DUPLICATE agar kalau barang sama dibeli lagi, quantity nambah)
             await connection.execute(
                 'INSERT INTO inventory (user_id, product_id, quantity) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + ?',
                 [req.user.id, item.product_id, item.quantity, item.quantity]
             );
         }
 
-        // 5. Kosongkan Cart
+        // 7. Kosongkan Cart
         await connection.execute('DELETE FROM cart WHERE user_id = ?', [req.user.id]);
 
         await connection.commit();
-        res.json({ message: 'Checkout berhasil, semua item masuk inventory!' });
+        res.json({ message: 'Checkout berhasil, saldo terpotong dan riwayat tercatat!' });
+
     } catch (error) {
         await connection.rollback();
+        console.error("Checkout Error:", error.message);
         res.status(400).json({ message: error.message });
     } finally {
         connection.release();
