@@ -64,9 +64,7 @@ npm install
 
 # Database Setup
 
-1. Buat database MySQL baru.
-
-copas aja langsung semua, abis masuk xampp langsung ke "sql" aja terus copas semua itu, di code nya udah ada command buat create database nya 
+copas aja langsung semua, abis masuk xampp langsung ke "sql" aja terus copas semua itu, gausah buat db soalnya di code nya udah ada command buat create database nya 
 
 
 # Google OAuth Setup
