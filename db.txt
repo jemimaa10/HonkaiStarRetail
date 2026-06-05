@@ -1,0 +1,205 @@
+admin kan gapunya wallet, hanya bisa crud produk. kalau gini bener ga
+
+-- ============================================================
+--  HONKAI STAR RETAIL — Database Schema
+--  MySQL 8.x  |  XAMPP 8.2.12
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS honkai_star_retail
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE honkai_star_retail;
+
+-- ============================================================
+--  TABLE: users
+--  role: 'admin' | 'user'
+--  Admin hanya bisa dibuat manual (INSERT langsung / Postman)
+--  User terbuat otomatis saat register email atau OAuth Google
+-- ============================================================
+CREATE TABLE users (
+  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  name          VARCHAR(100)    NOT NULL,
+  email         VARCHAR(150)    NOT NULL UNIQUE,
+  password      VARCHAR(255)        NULL COMMENT 'NULL jika login via Google OAuth',
+  google_id     VARCHAR(100)        NULL UNIQUE COMMENT 'Diisi jika login via Google',
+  role          ENUM('admin','user') NOT NULL DEFAULT 'user',
+  avatar_url    VARCHAR(500)        NULL,
+  wallet        DECIMAL(15,2)   NOT NULL DEFAULT 0.00 COMMENT 'Saldo virtual dalam Credits',
+  created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  INDEX idx_email (email),
+  INDEX idx_google_id (google_id)
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+--  TABLE: products
+--  Dikelola bersama oleh semua admin (shared data)
+--  image_url pakai link URL (tidak upload file)
+-- ============================================================
+CREATE TABLE products (
+  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  name          VARCHAR(150)    NOT NULL,
+  type          VARCHAR(100)    NOT NULL COMMENT 'Contoh: Light Cone, Relic, Material, Credit',
+  description   TEXT                NULL,
+  stock         INT UNSIGNED    NOT NULL DEFAULT 0,
+  image_url     VARCHAR(500)        NULL,
+  price         DECIMAL(15,2)   NOT NULL DEFAULT 0.00 COMMENT 'Harga dalam Credits',
+  created_by    INT UNSIGNED        NULL COMMENT 'FK ke users (admin yang buat)',
+  created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  INDEX idx_type (type),
+  CONSTRAINT fk_product_creator
+    FOREIGN KEY (created_by) REFERENCES users(id)
+    ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+--  TABLE: cart
+--  Keranjang belanja user (sebelum checkout)
+--  Satu user + satu produk = satu baris (quantity bisa > 1)
+-- ============================================================
+CREATE TABLE cart (
+  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  user_id       INT UNSIGNED    NOT NULL,
+  product_id    INT UNSIGNED    NOT NULL,
+  quantity      INT UNSIGNED    NOT NULL DEFAULT 1,
+  added_at      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_cart_user_product (user_id, product_id),
+  CONSTRAINT fk_cart_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_cart_product
+    FOREIGN KEY (product_id) REFERENCES products(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+--  TABLE: inventory
+--  Produk yang sudah dibeli user (Buy Now atau Checkout Cart)
+--  Satu user + satu produk = satu baris, quantity bisa bertambah
+-- ============================================================
+CREATE TABLE inventory (
+  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  user_id       INT UNSIGNED    NOT NULL,
+  product_id    INT UNSIGNED    NOT NULL,
+  quantity      INT UNSIGNED    NOT NULL DEFAULT 1,
+  bought_at     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_inventory_user_product (user_id, product_id),
+  CONSTRAINT fk_inventory_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE,
+  CONSTRAINT fk_inventory_product
+    FOREIGN KEY (product_id) REFERENCES products(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+--  TABLE: wallet_transactions
+--  Riwayat semua perubahan saldo (topup & pembelian)
+--  type: 'topup' | 'purchase'
+-- ============================================================
+CREATE TABLE wallet_transactions (
+  id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  user_id       INT UNSIGNED    NOT NULL,
+  type          ENUM('topup','purchase') NOT NULL,
+  amount        DECIMAL(15,2)   NOT NULL COMMENT 'Positif = topup, negatif = purchase',
+  description   VARCHAR(255)        NULL COMMENT 'Keterangan transaksi',
+  created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  INDEX idx_wallet_user (user_id),
+  CONSTRAINT fk_wallet_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- ============================================================
+--  SEED DATA: Admin (dibuat manual, tidak bisa daftar biasa)
+--  Password: admin123  →  bcrypt hash (cost 10)
+-- ============================================================
+INSERT INTO users (name, email, password, role, avatar_url) VALUES
+(
+  'Admin Honkai',
+  'admin@honkairetail.com',
+  '$2b$10$YourBcryptHashHereReplaceThis123456789012345678',
+  'admin',
+  'https://i.imgur.com/honkai_admin_avatar.png'
+);
+
+-- ============================================================
+--  SEED DATA: Contoh produk Honkai Star Rail
+-- ============================================================
+INSERT INTO products (name, type, description, stock, image_url, price, created_by) VALUES
+
+-- Light Cones
+('In the Night',        'Light Cone', 'A 5-star Hunt Light Cone that increases CRIT Rate and CRIT DMG.',          50, 'https://i.imgur.com/placeholder1.png', 15000.00, 1),
+('Moment of Victory',   'Light Cone', 'A 5-star Preservation Light Cone that boosts DEF and Effect RES.',         40, 'https://i.imgur.com/placeholder2.png', 15000.00, 1),
+('Before Dawn',         'Light Cone', 'A 5-star Erudition Light Cone that increases CRIT DMG and Skill DMG.',     35, 'https://i.imgur.com/placeholder3.png', 15000.00, 1),
+
+-- Relics
+('Musketeer of Wild Wheat Set', 'Relic', '4-piece relic set that boosts ATK% and SPD for Hunt characters.',      100, 'https://i.imgur.com/placeholder4.png',  5000.00, 1),
+('Firesmith of Lava Forging',   'Relic', '4-piece relic set that increases Fire DMG and Skill DMG.',              80, 'https://i.imgur.com/placeholder5.png',  5000.00, 1),
+('Genius of Brilliant Stars',   'Relic', '4-piece relic set for Quantum characters. Ignores DEF.',                90, 'https://i.imgur.com/placeholder6.png',  5000.00, 1),
+
+-- Materials
+('Traveler''s Guide',           'Material', 'A comprehensive guide that provides a large amount of Trailblaze EXP.', 200, 'https://i.imgur.com/placeholder7.png',  1000.00, 1),
+('Refined Aether',              'Material', 'A rare material used to level up Light Cones.',                       150, 'https://i.imgur.com/placeholder8.png',  2000.00, 1),
+('Credit',                      'Currency', 'The universal currency of the galaxy. Used for various upgrades.',   9999, 'https://i.imgur.com/placeholder9.png',   500.00, 1),
+
+-- Special
+('Stellar Jade x100',           'Currency', 'Premium currency. Used to pull in Warp banners.',                     60, 'https://i.imgur.com/placeholder10.png', 20000.00, 1);
+
+
+-- ============================================================
+--  SEED DATA: Contoh user biasa (untuk testing)
+--  Password: user123  →  bcrypt hash (cost 10)
+-- ============================================================
+INSERT INTO users (name, email, password, role, wallet) VALUES
+(
+  'Trailblazer',
+  'user@honkairetail.com',
+  '$2b$10$YourBcryptHashHereReplaceThis000000000000000000',
+  'user',
+  50000.00
+);
+
+-- ============================================================
+-- NOTE PENTING untuk Backend Developer:
+--
+-- 1. Hash di seed data di atas adalah PLACEHOLDER.
+--    Generate hash asli dengan:
+--    node -e "const b=require('bcrypt');b.hash('admin123',10).then(console.log)"
+--
+-- 2. Saat register user baru via API, role SELALU di-set 'user'
+--    di level backend (jangan percaya input dari client).
+--
+-- 3. Kolom google_id diisi saat pertama kali login via Google OAuth.
+--    Jika email sudah ada tapi google_id null → link akun.
+--
+-- 4. Tabel inventory menggunakan UPSERT (INSERT ... ON DUPLICATE KEY UPDATE)
+--    agar quantity bertambah jika item sudah ada di inventory.
+--
+-- 5. Setiap pembelian harus atomic:
+--    - Kurangi products.stock
+--    - Kurangi users.wallet
+--    - Tambah/update inventory
+--    - Insert wallet_transactions
+--    Gunakan MySQL TRANSACTION untuk ini.
+-- ============================================================
+
