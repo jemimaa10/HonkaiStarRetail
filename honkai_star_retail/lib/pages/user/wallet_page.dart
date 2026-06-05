@@ -20,7 +20,6 @@ class WalletPageState extends State<WalletPage> {
     fetchWallet();
   }
 
-  // Fungsi refresh saldo dan riwayat
   Future<void> fetchWallet() async {
     if (!mounted) return;
     setState(() => isLoading = true);
@@ -39,13 +38,12 @@ class WalletPageState extends State<WalletPage> {
       if (mounted) {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengambil saldo: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Failed to get credits: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  // Handle tombol Top Up
   Future<void> _handleTopUp() async {
     setState(() => isLoading = true);
     final token = Provider.of<AuthProvider>(context, listen: false).token;
@@ -55,17 +53,17 @@ class WalletPageState extends State<WalletPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? 'Berhasil menambah 50.000 Credits!'),
+            content: Text(result['message'] ?? 'Successfully added 50.000 Credits!'),
             backgroundColor: Colors.green,
           ),
         );
-        fetchWallet(); // Otomatis refresh saldo & riwayat
+        fetchWallet();
       }
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal Top Up: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Failed to top up!: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -81,7 +79,6 @@ class WalletPageState extends State<WalletPage> {
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          // --- KARTU SALDO PREMIUM ---
           Container(
             margin: const EdgeInsets.all(20),
             padding: const EdgeInsets.all(24),
@@ -120,7 +117,6 @@ class WalletPageState extends State<WalletPage> {
             ),
           ),
 
-          // --- TOMBOL TOP UP ---
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SizedBox(
@@ -144,14 +140,13 @@ class WalletPageState extends State<WalletPage> {
 
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text("Riwayat Transaksi", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            child: Text("Transaction History", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
           ),
 
           const SizedBox(height: 10),
 
-          // --- DAFTAR RIWAYAT TRANSAKSI ---
           FutureBuilder<List<dynamic>>(
-            key: ValueKey(balance), // Refresh riwayat setiap kali saldo berubah
+            key: ValueKey(balance), 
             future: WalletService.getTransactions(token!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -169,7 +164,7 @@ class WalletPageState extends State<WalletPage> {
                       children: [
                         Icon(Icons.history, size: 50, color: Colors.white24),
                         SizedBox(height: 10),
-                        Text("Belum ada transaksi", style: TextStyle(color: Colors.white24)),
+                        Text("No transactions yet", style: TextStyle(color: Colors.white24)),
                       ],
                     ),
                   ),
@@ -187,7 +182,6 @@ class WalletPageState extends State<WalletPage> {
                   final bool isTopup = tx['type'] == 'topup';
                   final double amount = double.tryParse(tx['amount'].toString()) ?? 0;
 
-                  // Penggantian teks agar lebih bagus
                   String displayTitle = isTopup ? "Top Up Credits" : (tx['description'] ?? "Item Purchase");
 
                   return Card(

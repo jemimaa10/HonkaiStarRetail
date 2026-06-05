@@ -1,29 +1,18 @@
--- ============================================================
---  HONKAI STAR RETAIL — Database Schema
---  MySQL 8.x  |  XAMPP 8.2.12
--- ============================================================
-
 CREATE DATABASE IF NOT EXISTS honkai_star_retail
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
 USE honkai_star_retail;
 
--- ============================================================
---  TABLE: users
---  role: 'admin' | 'user'
---  Admin hanya bisa dibuat manual (INSERT langsung / Postman)
---  User terbuat otomatis saat register email atau OAuth Google
--- ============================================================
 CREATE TABLE users (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   name          VARCHAR(100)    NOT NULL,
   email         VARCHAR(150)    NOT NULL UNIQUE,
   password      VARCHAR(255)        NULL COMMENT 'NULL jika login via Google OAuth',
-  google_id     VARCHAR(100)        NULL UNIQUE COMMENT 'Diisi jika login via Google',
+  google_id     VARCHAR(100)        NULL UNIQUE,
   role          ENUM('admin','user') NOT NULL DEFAULT 'user',
   avatar_url    VARCHAR(500)        NULL,
-  wallet        DECIMAL(15,2)   NOT NULL DEFAULT 0.00 COMMENT 'Saldo virtual dalam Credits',
+  wallet        DECIMAL(15,2)   NOT NULL DEFAULT 0.00,
   created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -32,21 +21,15 @@ CREATE TABLE users (
   INDEX idx_google_id (google_id)
 ) ENGINE=InnoDB;
 
-
--- ============================================================
---  TABLE: products
---  Dikelola bersama oleh semua admin (shared data)
---  image_url pakai link URL (tidak upload file)
--- ============================================================
 CREATE TABLE products (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   name          VARCHAR(150)    NOT NULL,
-  type          VARCHAR(100)    NOT NULL COMMENT 'Contoh: Light Cone, Relic, Material, Credit',
+  type          VARCHAR(100)    NOT NULL,
   description   TEXT                NULL,
   stock         INT UNSIGNED    NOT NULL DEFAULT 0,
   image_url     VARCHAR(500)        NULL,
   price         DECIMAL(15,2)   NOT NULL DEFAULT 0.00 COMMENT 'Harga dalam Credits',
-  created_by    INT UNSIGNED        NULL COMMENT 'FK ke users (admin yang buat)',
+  created_by    INT UNSIGNED        NULL,
   created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -58,11 +41,6 @@ CREATE TABLE products (
 ) ENGINE=InnoDB;
 
 
--- ============================================================
---  TABLE: cart
---  Keranjang belanja user (sebelum checkout)
---  Satu user + satu produk = satu baris (quantity bisa > 1)
--- ============================================================
 CREATE TABLE cart (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   user_id       INT UNSIGNED    NOT NULL,
@@ -82,11 +60,6 @@ CREATE TABLE cart (
 ) ENGINE=InnoDB;
 
 
--- ============================================================
---  TABLE: inventory
---  Produk yang sudah dibeli user (Buy Now atau Checkout Cart)
---  Satu user + satu produk = satu baris, quantity bisa bertambah
--- ============================================================
 CREATE TABLE inventory (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   user_id       INT UNSIGNED    NOT NULL,
@@ -106,17 +79,12 @@ CREATE TABLE inventory (
 ) ENGINE=InnoDB;
 
 
--- ============================================================
---  TABLE: wallet_transactions
---  Riwayat semua perubahan saldo (topup & pembelian)
---  type: 'topup' | 'purchase'
--- ============================================================
 CREATE TABLE wallet_transactions (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   user_id       INT UNSIGNED    NOT NULL,
   type          ENUM('topup','purchase') NOT NULL,
   amount        DECIMAL(15,2)   NOT NULL COMMENT 'Positif = topup, negatif = purchase',
-  description   VARCHAR(255)        NULL COMMENT 'Keterangan transaksi',
+  description   VARCHAR(255)        NULL,
   created_at    TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (id),
@@ -127,10 +95,6 @@ CREATE TABLE wallet_transactions (
 ) ENGINE=InnoDB;
 
 
--- ============================================================
---  SEED DATA: Admin (dibuat manual, tidak bisa daftar biasa)
---  Password: admin123  →  bcrypt hash (cost 10)
--- ============================================================
 INSERT INTO users (name, email, password, role, avatar_url) VALUES
 (
   'Admin Honkai',
@@ -140,34 +104,26 @@ INSERT INTO users (name, email, password, role, avatar_url) VALUES
   'https://i.imgur.com/honkai_admin_avatar.png'
 );
 
--- ============================================================
---  SEED DATA: Contoh produk Honkai Star Rail
--- ============================================================
 INSERT INTO products (name, type, description, stock, image_url, price, created_by) VALUES
 
 -- Light Cones
-('In the Night',        'Light Cone', 'A 5-star Hunt Light Cone that increases CRIT Rate and CRIT DMG.',          50, 'https://i.imgur.com/placeholder1.png', 15000.00, 1),
-('Moment of Victory',   'Light Cone', 'A 5-star Preservation Light Cone that boosts DEF and Effect RES.',         40, 'https://i.imgur.com/placeholder2.png', 15000.00, 1),
-('Before Dawn',         'Light Cone', 'A 5-star Erudition Light Cone that increases CRIT DMG and Skill DMG.',     35, 'https://i.imgur.com/placeholder3.png', 15000.00, 1),
+('In the Night',        'Light Cone', 'A 5-star Hunt Light Cone. Increases the wearer''s CRIT Rate by 18%. While the wearer is in battle, for every 10 SPD that exceeds 100, increases DMG dealt by Basic ATK and Skill by 6%. At the same time, increases the CRIT DMG of Ultimate by 12%. This effect can stack up to 6 time(s).',         50, 'https://static.wikia.nocookie.net/houkai-star-rail/images/5/5b/Light_Cone_In_the_Night_Artwork.png', 15000.00, 1),
+('Moment of Victory',   'Light Cone', 'A 5-star Preservation Light Cone that boosts DEF and Effect RES. Increases the wearer''s DEF by 24% and Effect Hit Rate by 24%. Increases the chance for the wearer to be attacked by enemies. When the wearer is attacked, increase their DEF by an extra 24% until the end of the wearer''s turn.',         40, 'https://static.wikia.nocookie.net/houkai-star-rail/images/c/c1/Light_Cone_Moment_of_Victory_Artwork.png', 15000.00, 1),
+('Before Dawn',         'Light Cone', 'A 5-star Erudition Light Cone. Increases the wearer''s CRIT DMG by 36%. Increases DMG dealt by the wearer''s Skill and Ultimate by 18%. After the wearer uses Skill or Ultimate, gains "Somnus Corpus." Upon triggering a Follow-Up ATK, consumes "Somnus Corpus," and increases DMG dealt by Follow-Up ATK by 48%.',     35, 'https://static.wikia.nocookie.net/houkai-star-rail/images/3/31/Light_Cone_Before_Dawn_Artwork.png', 15000.00, 1),
 
 -- Relics
-('Musketeer of Wild Wheat Set', 'Relic', '4-piece relic set that boosts ATK% and SPD for Hunt characters.',      100, 'https://i.imgur.com/placeholder4.png',  5000.00, 1),
-('Firesmith of Lava Forging',   'Relic', '4-piece relic set that increases Fire DMG and Skill DMG.',              80, 'https://i.imgur.com/placeholder5.png',  5000.00, 1),
-('Genius of Brilliant Stars',   'Relic', '4-piece relic set for Quantum characters. Ignores DEF.',                90, 'https://i.imgur.com/placeholder6.png',  5000.00, 1),
+('Musketeer of Wild Wheat Set', 'Relic', '4-piece relic set that boosts ATK% and SPD for Hunt characters.',      100, 'https://static.wikia.nocookie.net/houkai-star-rail/images/f/fc/Item_Musketeer_of_Wild_Wheat.png',  5000.00, 1),
+('Firesmith of Lava Forging',   'Relic', '4-piece relic set that increases Fire DMG and Skill DMG.',             80, 'https://static.wikia.nocookie.net/houkai-star-rail/images/9/96/Item_Firesmith_of_Lava-Forging.png',  5000.00, 1),
+('Genius of Brilliant Stars',   'Relic', '4-piece relic set for Quantum characters. Ignores DEF.',               90, 'https://static.wikia.nocookie.net/houkai-star-rail/images/a/aa/Item_Genius_of_Brilliant_Stars.png',  5000.00, 1),
 
 -- Materials
-('Traveler''s Guide',           'Material', 'A comprehensive guide that provides a large amount of Trailblaze EXP.', 200, 'https://i.imgur.com/placeholder7.png',  1000.00, 1),
-('Refined Aether',              'Material', 'A rare material used to level up Light Cones.',                       150, 'https://i.imgur.com/placeholder8.png',  2000.00, 1),
-('Credit',                      'Currency', 'The universal currency of the galaxy. Used for various upgrades.',   9999, 'https://i.imgur.com/placeholder9.png',   500.00, 1),
+('Traveler''s Guide',           'Material', 'A comprehensive guide that provides a large amount of Trailblaze EXP.', 200, 'https://static.wikia.nocookie.net/houkai-star-rail/images/8/8a/Item_Travelers_Guide.png',  1000.00, 1),
+('Refined Aether',              'Material', 'A rare material used to level up Light Cones.',                       150, 'https://static.wikia.nocookie.net/houkai-star-rail/images/6/6b/Item_Refined_Aether.png',  2000.00, 1),
 
 -- Special
-('Stellar Jade x100',           'Currency', 'Premium currency. Used to pull in Warp banners.',                     60, 'https://i.imgur.com/placeholder10.png', 20000.00, 1);
+('Credit x1000',                'Currency', 'The universal currency of the galaxy. Used for various upgrades.',   9999, 'https://static.wikia.nocookie.net/houkai-star-rail/images/d/d9/Item_Credit.png',   500.00, 1),
+('Stellar Jade x100',           'Currency', 'Premium currency. Used to pull in Warp banners.',                     60, 'https://static.wikia.nocookie.net/houkai-star-rail/images/d/d9/Item_Stellar_Jade.png', 20000.00, 1);
 
-
--- ============================================================
---  SEED DATA: Contoh user biasa (untuk testing)
---  Password: user123  →  bcrypt hash (cost 10)
--- ============================================================
 INSERT INTO users (name, email, password, role, wallet) VALUES
 (
   'Trailblazer',
@@ -176,28 +132,4 @@ INSERT INTO users (name, email, password, role, wallet) VALUES
   'user',
   50000.00
 );
-
--- ============================================================
--- NOTE PENTING untuk Backend Developer:
---
--- 1. Hash di seed data di atas adalah PLACEHOLDER.
---    Generate hash asli dengan:
---    node -e "const b=require('bcrypt');b.hash('admin123',10).then(console.log)"
---
--- 2. Saat register user baru via API, role SELALU di-set 'user'
---    di level backend (jangan percaya input dari client).
---
--- 3. Kolom google_id diisi saat pertama kali login via Google OAuth.
---    Jika email sudah ada tapi google_id null → link akun.
---
--- 4. Tabel inventory menggunakan UPSERT (INSERT ... ON DUPLICATE KEY UPDATE)
---    agar quantity bertambah jika item sudah ada di inventory.
---
--- 5. Setiap pembelian harus atomic:
---    - Kurangi products.stock
---    - Kurangi users.wallet
---    - Tambah/update inventory
---    - Insert wallet_transactions
---    Gunakan MySQL TRANSACTION untuk ini.
--- ============================================================
 

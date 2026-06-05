@@ -14,20 +14,19 @@ class _RegisterPageState extends State<RegisterPage> {
   final passwordController = TextEditingController();
   
   bool isLoading = false;
-  bool _obscurePassword = true; // State untuk toggle mata password
+  bool _obscurePassword = true;
 
-  // Validasi Input
   bool validate() {
     if (nameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty) {
-      showError("Semua field wajib diisi!");
+      showError("All fields must be filled!");
       return false;
     }
     if (!emailController.text.contains('@')) {
-      showError("Format email salah!");
+      showError("Wrong email format!");
       return false;
     }
     if (passwordController.text.length < 6) {
-      showError("Password minimal 6 karakter!");
+      showError("Password must contain at least 6 characters");
       return false;
     }
     return true;
@@ -54,14 +53,14 @@ class _RegisterPageState extends State<RegisterPage> {
       if (result['success']) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registrasi Berhasil! Silakan Login."), backgroundColor: Colors.green),
+          const SnackBar(content: Text("Registration successful! You can log in now"), backgroundColor: Colors.green),
         );
-        Navigator.pop(context); // Kembali ke halaman login
+        Navigator.pop(context);
       } else {
         showError(result['message']);
       }
     } catch (e) {
-      showError("Terjadi kesalahan koneksi.");
+      showError("Connection problem occured.");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -70,19 +69,17 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0C0D), // Background gelap senada login
+      backgroundColor: const Color(0xFF0C0C0D),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white), // Tombol back jadi putih
-        // Judul 'Trailblazer Registration' dihapus agar clean
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 30),
         child: Column(
           children: [
             const SizedBox(height: 10),
-            // 1. Logo Kustom (Besar seperti di Login Page)
             Image.asset(
               'assets/images/logo_retail.png',
               height: 150,
@@ -90,7 +87,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 40),
             
-            // Input Nama Lengkap
             TextField(
               controller: nameController,
               style: const TextStyle(color: Colors.white),
@@ -112,7 +108,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 15),
 
-            // Input Email
             TextField(
               controller: emailController,
               style: const TextStyle(color: Colors.white),
@@ -135,7 +130,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
             const SizedBox(height: 15),
 
-            // Input Password dengan Fitur Mata
             TextField(
               controller: passwordController,
               obscureText: _obscurePassword,
@@ -166,7 +160,6 @@ class _RegisterPageState extends State<RegisterPage> {
             
             const SizedBox(height: 40),
 
-            // 2. Tombol Register (Teks putih tebal)
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -193,11 +186,10 @@ class _RegisterPageState extends State<RegisterPage> {
             
             const SizedBox(height: 20),
             
-            // Tombol Kembali ke Login
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text(
-                'Sudah punya akun? Login di sini',
+                'Already have an account? Login here',
                 style: TextStyle(color: Colors.blueAccent),
               ),
             ),

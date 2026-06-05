@@ -89,7 +89,7 @@ class _AdminProductFormState extends State<AdminProductForm> {
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Berhasil menyimpan produk!'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Successfully saved product!'), backgroundColor: Colors.green),
         );
         Navigator.pop(context, true); 
       }
@@ -107,14 +107,13 @@ class _AdminProductFormState extends State<AdminProductForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0C0D), // Background gelap senada
+      backgroundColor: const Color(0xFF0C0C0D),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C0C0D),
         elevation: 0,
         centerTitle: true,
-        toolbarHeight: 80, // Tinggi yang sama dengan MainNavigation
-        iconTheme: const IconThemeData(color: Colors.white), // Warna tombol back
-        // MENGGANTI TEKS DENGAN LOGO
+        toolbarHeight: 80, 
+        iconTheme: const IconThemeData(color: Colors.white), 
         title: Image.asset(
           'assets/images/logo_retail.png',
           height: 90, 
@@ -135,38 +134,38 @@ class _AdminProductFormState extends State<AdminProductForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.product == null ? "Tambah Produk Baru" : "Edit Detail Produk",
+                    widget.product == null ? "Add New Product" : "Edit Product Details",
                     style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 20),
                   
-                  _buildTextField(nameController, 'Nama Produk', Icons.shopping_bag_outlined),
+                  _buildTextField(nameController, 'Product Name', Icons.shopping_bag_outlined),
                   const SizedBox(height: 15),
                   
                   DropdownButtonFormField<String>(
                     dropdownColor: const Color(0xFF1A1A1A),
                     value: selectedType,
                     style: const TextStyle(color: Colors.white),
-                    decoration: _inputDecoration('Tipe Produk', Icons.category_outlined),
+                    decoration: _inputDecoration('Product Type', Icons.category_outlined),
                     items: productTypes.map((t) {
                       return DropdownMenuItem(value: t, child: Text(t));
                     }).toList(),
                     onChanged: (val) => setState(() => selectedType = val),
-                    validator: (v) => v == null ? 'Pilih tipe produk' : null,
+                    validator: (v) => v == null ? 'Choose product type' : null,
                   ),
                   
                   const SizedBox(height: 15),
                   Row(
                     children: [
-                      Expanded(child: _buildTextField(priceController, 'Harga', Icons.payments_outlined, isNumber: true)),
+                      Expanded(child: _buildTextField(priceController, 'Price', Icons.payments_outlined, isNumber: true)),
                       const SizedBox(width: 10),
-                      Expanded(child: _buildTextField(stockController, 'Stok', Icons.inventory_2_outlined, isNumber: true)),
+                      Expanded(child: _buildTextField(stockController, 'Stock', Icons.inventory_2_outlined, isNumber: true)),
                     ],
                   ),
                   const SizedBox(height: 15),
-                  _buildTextField(imageUrlController, 'URL Gambar', Icons.image_outlined),
+                  _buildTextField(imageUrlController, 'Image URL', Icons.image_outlined),
                   const SizedBox(height: 15),
-                  _buildTextField(descController, 'Deskripsi (Opsional)', Icons.description_outlined, maxLines: 3),
+                  _buildTextField(descController, 'Description (Optional)', Icons.description_outlined, maxLines: 3),
                   
                   const SizedBox(height: 40),
                   SizedBox(
@@ -179,7 +178,7 @@ class _AdminProductFormState extends State<AdminProductForm> {
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                       ),
-                      child: const Text('SIMPAN PERUBAHAN', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                      child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
                     ),
                   ),
                 ],
@@ -189,7 +188,6 @@ class _AdminProductFormState extends State<AdminProductForm> {
     );
   }
 
-  // Helper untuk merapikan desain TextField agar senada dengan Login
   Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isNumber = false, int maxLines = 1}) {
     return TextFormField(
       controller: controller,
@@ -197,7 +195,7 @@ class _AdminProductFormState extends State<AdminProductForm> {
       style: const TextStyle(color: Colors.white),
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       decoration: _inputDecoration(label, icon),
-      validator: (v) => v!.isEmpty && label != 'Deskripsi (Opsional)' ? 'Wajib diisi' : null,
+      validator: (v) => v!.isEmpty && label != 'Description (Optional)' ? 'Must be filled' : null,
     );
   }
 

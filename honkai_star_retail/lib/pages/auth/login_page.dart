@@ -18,16 +18,16 @@ class _LoginPageState extends State<LoginPage> {
   
   // Inisialisasi GoogleSignIn
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: '225073373774-03uaucl021s0u5es4etaavb7171ka2nv.apps.googleusercontent.com',
+    clientId: '821549327398-r34pvjg4hv7ufqug99lo5u85gns4jgit.apps.googleusercontent.com',
     scopes: ['email', 'profile', 'openid'],
   );
   
   bool isLoading = false;
-  bool _obscurePassword = true; // State untuk kontrol melihat password
+  bool _obscurePassword = true;
 
   bool validateInput() {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      showError('Email dan Password tidak boleh kosong!');
+      showError('Email and Password must not be empty!');
       return false;
     }
     return true;
@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
         showError(result['message']);
       }
     } catch (e) {
-      showError('Gagal terhubung ke server.');
+      showError('Failed to connect to server');
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
       final String? tokenToSend = googleAuth.idToken ?? googleAuth.accessToken;
 
       if (tokenToSend == null) {
-        showError("Gagal mendapatkan token.");
+        showError("Failed to get token.");
         return;
       }
 
@@ -88,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
         showError(result['message']);
       }
     } catch (error) {
-      showError("Login Gagal: $error");
+      showError("Login failed: $error");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -110,11 +110,11 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0C0D), // Tema gelap
+      backgroundColor: const Color(0xFF0C0C0D),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        automaticallyImplyLeading: false, // Menghilangkan tombol back jika ada
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -122,7 +122,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 1. LOGO KUSTOM (Besar & Dominan)
               Image.asset(
                 'assets/images/logo_retail.png',
                 height: 180,
@@ -130,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 50),
               
-              // Input Email
               TextField(
                 controller: emailController,
                 style: const TextStyle(color: Colors.white),
@@ -153,7 +151,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 15),
               
-              // Input Password dengan Tombol Mata
               TextField(
                 controller: passwordController,
                 obscureText: _obscurePassword,
@@ -183,7 +180,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 30),
               
-              // Tombol Login Utama
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -211,19 +207,18 @@ class _LoginPageState extends State<LoginPage> {
               const Text("OR", style: TextStyle(color: Colors.white54)),
               const SizedBox(height: 20),
 
-              // Tombol Google (Aset Lokal)
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: OutlinedButton.icon(
                   onPressed: isLoading ? null : handleGoogleSignIn,
                   icon: Image.asset(
-                    'assets/images/google_logo.png', // Menggunakan aset lokal
+                    'assets/images/google_logo.png',
                     height: 24,
                     errorBuilder: (context, error, stackTrace) => const Icon(Icons.login, color: Colors.white),
                   ),
                   label: const Text(
-                    'Masuk dengan Google',
+                    'Login with Google',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -243,7 +238,7 @@ class _LoginPageState extends State<LoginPage> {
                   );
                 },
                 child: const Text(
-                  'Belum punya akun? Daftar di sini',
+                  'No account yet? Register here',
                   style: TextStyle(color: Colors.blueAccent),
                 ),
               ),

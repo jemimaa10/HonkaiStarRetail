@@ -8,7 +8,7 @@ class ApiService {
     final response = await http.get(
       Uri.parse('${AppConstants.baseUrl}/products'),
       headers: {
-        'Authorization': 'Bearer $token', // Verifikasi bearer token [cite: 57]
+        'Authorization': 'Bearer $token',
       },
     );
 
@@ -16,7 +16,7 @@ class ApiService {
       List data = jsonDecode(response.body)['data'];
       return data.map((json) => ProductModel.fromJson(json)).toList();
     } else {
-      throw Exception('Gagal mengambil produk');
+      throw Exception('Failed to get product');
     }
   }
 }

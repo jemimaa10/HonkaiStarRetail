@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require('../config/db');
 const verifyToken = require('../middleware/authMiddleware');
 
-// 1. GET: Lihat Inventory User (GET Request ke-2 untuk User)
 router.get('/', verifyToken, async (req, res) => {
     try {
         const [items] = await db.execute(
@@ -19,7 +18,6 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
-// 2. POST: Membeli Barang (Fitur "Buy" Langsung)
 router.post('/buy', verifyToken, async (req, res) => {
     const { product_id, quantity } = req.body;
     const connection = await db.getConnection();
@@ -27,7 +25,6 @@ router.post('/buy', verifyToken, async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        // 1. Ambil data produk & saldo user
         const [products] = await connection.execute('SELECT * FROM products WHERE id = ?', [product_id]);
         const [users] = await connection.execute('SELECT wallet FROM users WHERE id = ?', [req.user.id]);
         
@@ -35,21 +32,17 @@ router.post('/buy', verifyToken, async (req, res) => {
         const user = users[0];
         const totalPrice = product.price * quantity;
 
-        // VALIDASI: Cek Stok (Syarat Proyek: Data Validation [cite: 47, 48])
         if (product.stock < quantity) {
             throw new Error('Stok tidak mencukupi!');
         }
 
-        // VALIDASI: Cek Saldo
         if (user.wallet < totalPrice) {
             throw new Error('Saldo tidak cukup!');
         }
 
-        // 2. Kurangi Saldo & Stok
         await connection.execute('UPDATE users SET wallet = wallet - ? WHERE id = ?', [totalPrice, req.user.id]);
         await connection.execute('UPDATE products SET stock = stock - ? WHERE id = ?', [quantity, product_id]);
 
-        // 3. Masukkan ke Inventory (Gunakan UPSERT agar quantity bertambah jika sudah ada)
         await connection.execute(
             `INSERT INTO inventory (user_id, product_id, quantity) 
              VALUES (?, ?, ?) 
@@ -57,7 +50,6 @@ router.post('/buy', verifyToken, async (req, res) => {
             [req.user.id, product_id, quantity, quantity]
         );
 
-        // 4. Catat Transaksi
         await connection.execute(
             'INSERT INTO wallet_transactions (user_id, type, amount, description) VALUES (?, ?, ?, ?)',
             [req.user.id, 'purchase', -totalPrice, `Beli ${product.name}`]

@@ -13,35 +13,33 @@ class AdminProductPage extends StatefulWidget {
 }
 
 class _AdminProductPageState extends State<AdminProductPage> {
-  // Fungsi untuk menghapus produk
   Future<void> _deleteProduct(String token, int productId) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text('Hapus Produk?', style: TextStyle(color: Colors.white)),
-        content: const Text('Tindakan ini tidak bisa dibatalkan.', style: TextStyle(color: Colors.white70)),
+        title: const Text('Erase Product?', style: TextStyle(color: Colors.white)),
+        content: const Text('This process cannot be undone.', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false), 
-            child: const Text('Batal', style: TextStyle(color: Colors.blueAccent))
+            child: const Text('Cancel', style: TextStyle(color: Colors.blueAccent))
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true), 
-            child: const Text('Hapus', style: TextStyle(color: Colors.redAccent))
+            child: const Text('Erase', style: TextStyle(color: Colors.redAccent))
           ),
         ],
       ),
     );
 
     if (confirm == true) {
-      // Pastikan method deleteProduct sudah ada di ProductService kamu
       final success = await ProductService.deleteProduct(token, productId);
       if (success) {
-        setState(() {}); // Refresh data setelah hapus
+        setState(() {});
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Produk berhasil dihapus"), backgroundColor: Colors.green),
+            const SnackBar(content: Text("Product successfully erased."), backgroundColor: Colors.green),
           );
         }
       }
@@ -54,13 +52,12 @@ class _AdminProductPageState extends State<AdminProductPage> {
     final token = authProvider.token;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0C0D), // Background gelap
+      backgroundColor: const Color(0xFF0C0C0D),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C0C0D),
         elevation: 0,
         centerTitle: true,
-        toolbarHeight: 80, // Ukuran toolbar konsisten
-        // GANTI TEKS DENGAN LOGO
+        toolbarHeight: 80,
         title: Image.asset(
           'assets/images/logo_retail.png',
           height: 90,
@@ -84,7 +81,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(
-              child: Text('Belum ada produk.', style: TextStyle(color: Colors.white70)),
+              child: Text('No products yet.', style: TextStyle(color: Colors.white70)),
             );
           }
 
@@ -96,7 +93,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
             itemBuilder: (context, index) {
               final product = products[index];
               return Card(
-                color: const Color(0xFF1A1A1A), // Card gelap
+                color: const Color(0xFF1A1A1A),
                 margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListTile(
@@ -114,14 +111,13 @@ class _AdminProductPageState extends State<AdminProductPage> {
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 5),
                     child: Text(
-                      'Tipe: ${product.type} | Stok: ${product.stock}',
+                      'Type: ${product.type} | Stock: ${product.stock}',
                       style: const TextStyle(color: Colors.white70),
                     ),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Tombol Edit
                       IconButton(
                         icon: const Icon(Icons.edit_note, color: Colors.blueAccent, size: 28),
                         onPressed: () async {
@@ -131,10 +127,9 @@ class _AdminProductPageState extends State<AdminProductPage> {
                               builder: (context) => AdminProductForm(product: product),
                             ),
                           );
-                          if (result == true) setState(() {}); // Refresh jika ada perubahan
+                          if (result == true) setState(() {});
                         },
                       ),
-                      // Tombol Hapus
                       IconButton(
                         icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                         onPressed: () => _deleteProduct(token, product.id!),
@@ -147,7 +142,6 @@ class _AdminProductPageState extends State<AdminProductPage> {
           );
         },
       ),
-      // Floating Action Button yang lebih keren
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
         onPressed: () async {
@@ -155,7 +149,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
             context,
             MaterialPageRoute(builder: (context) => const AdminProductForm()),
           );
-          if (result == true) setState(() {}); // Refresh data setelah tambah
+          if (result == true) setState(() {});
         },
         child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),

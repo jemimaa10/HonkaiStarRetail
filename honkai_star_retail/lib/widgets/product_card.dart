@@ -23,9 +23,8 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. BAGIAN GAMBAR
             AspectRatio(
-              aspectRatio: 1.2, // Sedikit lebih pendek agar memberi ruang teks
+              aspectRatio: 1.2,
               child: Image.network(
                 product.imageUrl,
                 fit: BoxFit.cover,
@@ -42,13 +41,12 @@ class ProductCard extends StatelessWidget {
               ),
             ),
 
-            // 2. BAGIAN DETAIL (Gunakan Expanded + MainAxisAlignment agar fleksibel)
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Mengatur jarak antar teks secara otomatis
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Text(
                       product.name,
@@ -56,7 +54,7 @@ class ProductCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold, 
-                        fontSize: 12, // Ukuran dikurangi sedikit
+                        fontSize: 12,
                         color: Colors.white,
                       ),
                     ),
@@ -66,7 +64,6 @@ class ProductCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white54, fontSize: 9),
                     ),
-                    // Row untuk Harga dan Stok
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -82,7 +79,7 @@ class ProductCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Stock:${product.stock}', // Disingkat 'S' agar lebih hemat ruang
+                          'Stock:${product.stock}',
                           style: const TextStyle(fontSize: 9, color: Colors.white38),
                         ),
                       ],

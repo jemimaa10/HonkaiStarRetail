@@ -64,7 +64,7 @@ npm install
 
 # Database Setup
 
-copas aja langsung semua, abis masuk xampp langsung ke "sql" aja terus copas semua itu, gausah buat db soalnya di code nya udah ada command buat create database nya 
+copas aja langsung semua dari db.txt, abis masuk xampp langsung ke "sql" aja terus copas semua itu, gausah buat db soalnya di code nya udah ada command buat create database nya 
 
 
 # Google OAuth Setup
@@ -284,6 +284,8 @@ user@honkairetail.com
 Password:
 user123
 ```
+Update: Untuk mengakses Admin, akun perlu di register secara manual dan di-update rolenya menjadi admin dalam DB.
+
 
 ---
 

@@ -1,5 +1,4 @@
 const isAdmin = (req, res, next) => {
-    // req.user didapat dari verifyToken yang dijalankan sebelumnya
     if (req.user && req.user.role === 'admin') {
         next();
     } else {

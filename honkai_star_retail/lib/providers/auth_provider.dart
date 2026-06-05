@@ -8,7 +8,6 @@ class AuthProvider extends ChangeNotifier {
 
   bool get isLoggedIn => token != null;
 
-  // save login
   void setAuth({
     required String newToken,
     required Map<String, dynamic> newUser,
@@ -21,7 +20,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // logout
   void logout() {
 
     token = null;

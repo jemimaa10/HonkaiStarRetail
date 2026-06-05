@@ -13,7 +13,6 @@ class MarketPage extends StatefulWidget {
 }
 
 class _MarketPageState extends State<MarketPage> {
-  // Key unik untuk memicu rebuild FutureBuilder secara paksa saat ditarik (Pull to Refresh)
   Key _refreshKey = UniqueKey();
 
   Future<void> _refreshProducts() async {
@@ -28,12 +27,12 @@ class _MarketPageState extends State<MarketPage> {
     final token = authProvider.token;
 
     return Scaffold(
-      backgroundColor: Colors.black, // Tema gelap sesuai Star Rail
+      backgroundColor: Colors.black,
       body: RefreshIndicator(
         onRefresh: _refreshProducts,
         color: Colors.blueAccent,
         child: token == null
-            ? const Center(child: Text('Sesi berakhir, silakan login ulang', style: TextStyle(color: Colors.white)))
+            ? const Center(child: Text('Session ended, please login again', style: TextStyle(color: Colors.white)))
             : FutureBuilder<List<ProductModel>>(
                 key: _refreshKey,
                 future: ProductService.getAllProducts(token),
@@ -47,11 +46,11 @@ class _MarketPageState extends State<MarketPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Gagal memuat produk', style: TextStyle(color: Colors.white)),
+                          const Text('Failed to load products', style: TextStyle(color: Colors.white)),
                           const SizedBox(height: 10),
                           ElevatedButton(
                             onPressed: _refreshProducts,
-                            child: const Text('Coba Lagi'),
+                            child: const Text('Try again'),
                           ),
                         ],
                       ),
@@ -64,7 +63,7 @@ class _MarketPageState extends State<MarketPage> {
                     return ListView(
                       children: const [
                         SizedBox(height: 200),
-                        Center(child: Text('Tidak ada produk tersedia', style: TextStyle(color: Colors.white24))),
+                        Center(child: Text('No products available', style: TextStyle(color: Colors.white24))),
                       ],
                     );
                   }
@@ -73,10 +72,10 @@ class _MarketPageState extends State<MarketPage> {
                     padding: const EdgeInsets.all(16),
                     physics: const AlwaysScrollableScrollPhysics(), 
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,          // 2 Kolom
-                      childAspectRatio: 0.82,     // DIPERKECIL: Angka lebih besar = Box lebih pendek
-                      crossAxisSpacing: 14,       // Jarak horizontal antar box
-                      mainAxisSpacing: 14,        // Jarak vertikal antar box
+                      crossAxisCount: 2,          
+                      childAspectRatio: 0.82,     
+                      crossAxisSpacing: 14,       
+                      mainAxisSpacing: 14,       
                     ),
                     itemCount: products.length,
                     itemBuilder: (context, index) {
@@ -84,13 +83,11 @@ class _MarketPageState extends State<MarketPage> {
                       return ProductCard(
                         product: product,
                         onTap: () async {
-                          // Navigasi ke Detail
                           await Navigator.pushNamed(
                             context,
                             '/product-detail',
                             arguments: product,
                           );
-                          // Refresh saat kembali untuk update stok
                           _refreshProducts();
                         },
                       );

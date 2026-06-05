@@ -19,7 +19,6 @@ class _CartPageState extends State<CartPage> {
     return double.tryParse(value.toString()) ?? 0.0;
   }
 
-  // LOGIK FIX: Mengecek status success dari Service
   Future<void> _handleCheckout(String token) async {
     setState(() => isCheckingOut = true);
 
@@ -27,27 +26,24 @@ class _CartPageState extends State<CartPage> {
       final result = await CartService.checkout(token);
       
       if (mounted) {
-        // CEK APAKAH BENAR-BENAR SUKSES (Bukan cuma dapet response)
         if (result['success'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message'] ?? 'Checkout Berhasil!'), 
+              content: Text(result['message'] ?? 'Checkout Success!'), 
               backgroundColor: Colors.green,
               duration: const Duration(seconds: 2),
             ),
           );
 
-          // Kembalikan 'true' agar MainNavigation refresh saldo & inventory
           Navigator.pop(context, true); 
         } else {
-          // JIKA GAGAL (Contoh: Saldo Kurang atau Stok Habis)
-          _showErrorDialog(result['message'] ?? 'Checkout Gagal');
+          _showErrorDialog(result['message'] ?? 'Checkout Failed');
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error occured: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -55,13 +51,12 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  // Dialog estetik untuk memberitahu jika saldo kurang/error
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text("Transaksi Ditolak", style: TextStyle(color: Colors.redAccent)),
+        title: const Text("Transaction rejected", style: TextStyle(color: Colors.redAccent)),
         content: Text(message, style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
@@ -79,13 +74,13 @@ class _CartPageState extends State<CartPage> {
     final token = authProvider.token;
 
     if (token == null) {
-      return const Scaffold(backgroundColor: Colors.black, body: Center(child: Text("Sesi habis", style: TextStyle(color: Colors.white))));
+      return const Scaffold(backgroundColor: Colors.black, body: Center(child: Text("Session ended!", style: TextStyle(color: Colors.white))));
     }
 
     return Scaffold(
-      backgroundColor: Colors.black, // Tema Gelap
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Keranjang Belanja'),
+        title: const Text('Shopping Cart'),
         backgroundColor: const Color(0xFF0C0C0D),
       ),
       body: FutureBuilder<List<dynamic>>(
@@ -95,10 +90,10 @@ class _CartPageState extends State<CartPage> {
             return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Gagal mengambil data keranjang', style: TextStyle(color: Colors.white)));
+            return const Center(child: Text('Failed to get cart items!', style: TextStyle(color: Colors.white)));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Keranjang kamu masih kosong', style: TextStyle(color: Colors.white54)));
+            return const Center(child: Text('Your cart is still empty!', style: TextStyle(color: Colors.white54)));
           }
 
           final cartItems = snapshot.data!;
@@ -132,7 +127,7 @@ class _CartPageState extends State<CartPage> {
                                   errorBuilder: (context, e, s) => const Icon(Icons.broken_image, color: Colors.white24))
                               : const Icon(Icons.shopping_bag, color: Colors.blueAccent),
                         ),
-                        title: Text(item['name'] ?? 'Produk', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        title: Text(item['name'] ?? 'Product', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         subtitle: Text('$qty x ${price.toStringAsFixed(0)} Credits', style: const TextStyle(color: Colors.white70)),
                         trailing: Text(
                           subTotal.toStringAsFixed(0),
@@ -155,7 +150,7 @@ class _CartPageState extends State<CartPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Pembayaran:', style: TextStyle(fontSize: 16, color: Colors.white)),
+                        const Text('Total payment:', style: TextStyle(fontSize: 16, color: Colors.white)),
                         Text(
                           '${totalGlobal.toStringAsFixed(0)} Credits', 
                           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueAccent)
@@ -179,7 +174,7 @@ class _CartPageState extends State<CartPage> {
                               width: 24, 
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
                             )
-                          : const Text('CHECKOUT SEKARANG', style: TextStyle(fontWeight: FontWeight.bold)),
+                          : const Text('CHECKOUT NOW', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],

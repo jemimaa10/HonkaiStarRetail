@@ -24,7 +24,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Future<void> handleAddToCart(ProductModel product, String token) async {
     if (product.id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error: ID Produk tidak ditemukan")),
+        const SnackBar(content: Text("Error: Product ID not found")),
       );
       return;
     }
@@ -34,10 +34,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     setState(() => isAdding = true);
 
     try {
-      // --- LOGIC BARU: CEK ISI KERANJANG TERLEBIH DAHULU ---
       final cartItems = await CartService.getCartItems(token);
       
-      // Cari produk yang sama di keranjang
       int qtyExistingInCart = 0;
       for (var item in cartItems) {
         if (item['product_id'] == product.id) {
@@ -46,7 +44,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         }
       }
 
-      // Validasi: (Yang sudah di keranjang + yang mau ditambah) tidak boleh > stok
       if ((qtyExistingInCart + inputQty) > product.stock) {
         setState(() => isAdding = false);
         int sisaBolehTambah = product.stock - qtyExistingInCart;
@@ -55,16 +52,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           SnackBar(
             content: Text(
               qtyExistingInCart > 0 
-                ? "Gagal! Di keranjang sudah ada $qtyExistingInCart. Hanya bisa tambah $sisaBolehTambah lagi."
-                : "Stok tidak mencukupi!",
+                ? "Failed! Already have $qtyExistingInCart in cart. Can only add $sisaBolehTambah more."
+                : "Insufficient stock!",
             ),
             backgroundColor: Colors.orange.shade900,
           ),
         );
-        return; // Stop di sini, jangan lanjut ke API
+        return; 
       }
 
-      // --- LANJUT KE API JIKA LOLOS VALIDASI ---
       final result = await CartService.addToCart(
         token: token,
         productId: product.id!,
@@ -75,11 +71,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         setState(() => isAdding = false);
         
         bool isSuccess = result['success'] == true || 
-                         result['message'].toString().toLowerCase().contains('berhasil');
+                         result['message'].toString().toLowerCase().contains('Success');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? "Berhasil menambah ke keranjang"),
+            content: Text(result['message'] ?? "Successfully added to cart."),
             backgroundColor: isSuccess ? Colors.green : Colors.red,
             duration: const Duration(seconds: 1),
           ),
@@ -95,7 +91,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       if (mounted) {
         setState(() => isAdding = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Terjadi kesalahan: $e"), backgroundColor: Colors.red),
+          SnackBar(content: Text("Error!: $e"), backgroundColor: Colors.red),
         );
       }
     }
@@ -109,7 +105,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Detail Produk'),
+        title: const Text('Product Details'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -147,10 +143,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   
                   const Divider(height: 40, color: Colors.white24),
                   
-                  const Text('Deskripsi', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 10),
                   Text(
-                    product.description ?? 'Tidak ada deskripsi untuk item ini.', 
+                    product.description ?? 'There are not descriptions for this item.', 
                     style: const TextStyle(fontSize: 15, color: Colors.white70, height: 1.5)
                   ),
                   
@@ -158,7 +154,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   
                   Row(
                     children: [
-                      const Text('Stok Tersedia:', style: TextStyle(fontSize: 16, color: Colors.white70)),
+                      const Text('Stock:', style: TextStyle(fontSize: 16, color: Colors.white70)),
                       const SizedBox(width: 8),
                       Text('${product.stock}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
                       const Spacer(),
@@ -235,7 +231,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           child: isAdding 
               ? const SizedBox(height: 25, width: 25, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
               : Text(
-                  product.stock > 0 ? 'TAMBAH KE KERANJANG' : 'STOK HABIS',
+                  product.stock > 0 ? 'ADD TO CART' : 'STOCK EMPTY',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
         ),

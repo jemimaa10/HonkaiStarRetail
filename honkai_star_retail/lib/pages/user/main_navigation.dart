@@ -37,15 +37,13 @@ class _MainNavigationState extends State<MainNavigation> {
         backgroundColor: const Color(0xFF0C0C0D),
         elevation: 0,
         centerTitle: true,
-        // 1. NAIKKAN TINGGI TOOLBAR (Default adalah 56)
         toolbarHeight: 80, 
         
-        // 2. PERBESAR LOGO
         title: Container(
-          margin: const EdgeInsets.only(top: 10), // Beri sedikit space dari atas
+          margin: const EdgeInsets.only(top: 10),
           child: Image.asset(
             'assets/images/logo_retail.png',
-            height: 90, // Ukuran logo sekarang jauh lebih besar
+            height: 90,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
               return const Text(

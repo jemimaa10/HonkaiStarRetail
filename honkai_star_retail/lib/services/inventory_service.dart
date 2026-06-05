@@ -18,10 +18,10 @@ class InventoryService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body)['inventory'];
       } else {
-        throw Exception('Gagal mengambil inventory');
+        throw Exception('Failed to get inventory');
       }
     } catch (e) {
-      throw Exception('Kesalahan koneksi');
+      throw Exception('Connection error');
     }
   }
 }

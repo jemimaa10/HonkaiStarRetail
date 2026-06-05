@@ -1,7 +1,6 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// Membuat pool koneksi agar lebih efisien
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -12,14 +11,13 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Test koneksi saat server berjalan
 pool.getConnection()
     .then((connection) => {
-        console.log('✅ Terhubung ke database MySQL (honkai_star_retail)');
+        console.log('✅ Connected to MySQL (honkai_star_retail)');
         connection.release();
     })
     .catch((err) => {
-        console.error('❌ Gagal terhubung ke database:', err.message);
+        console.error('❌ Failed to connect to database:', err.message);
     });
 
 module.exports = pool;

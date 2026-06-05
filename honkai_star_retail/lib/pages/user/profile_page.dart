@@ -3,12 +3,10 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
 class ProfilePage extends StatelessWidget {
-  // Pastikan constructor-nya 'const' dan tidak meminta parameter wajib
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Kita ambil data user dari Provider saja, jangan dari constructor
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
 

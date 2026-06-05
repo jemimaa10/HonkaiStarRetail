@@ -28,10 +28,10 @@ class _AdminProductPageState extends State<AdminProductPage> {
           return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
         }
         if (snapshot.hasError) {
-          return Center(child: Text('Terjadi kesalahan: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
+          return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Belum ada produk untuk dikelola.', style: TextStyle(color: Colors.white70)));
+          return const Center(child: Text('No product yet do be managed', style: TextStyle(color: Colors.white70)));
         }
 
         final products = snapshot.data!;
@@ -43,7 +43,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
             final product = products[index];
             
             return Card(
-              color: const Color(0xFF1A1A1A), // Card gelap senada login
+              color: const Color(0xFF1A1A1A),
               elevation: 0,
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -64,7 +64,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)
                 ),
                 subtitle: Text(
-                  'Tipe: ${product.type} | Stok: ${product.stock}',
+                  'Type: ${product.type} | Stock: ${product.stock}',
                   style: const TextStyle(color: Colors.white70),
                 ),
                 trailing: Row(
@@ -158,12 +158,12 @@ class _AdminProductPageState extends State<AdminProductPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text('Hapus Produk?', style: TextStyle(color: Colors.white)),
-        content: const Text('Data produk akan dihapus secara permanen.', style: TextStyle(color: Colors.white70)),
+        title: const Text('Erase product?', style: TextStyle(color: Colors.white)),
+        content: const Text('Product data will be permanently erased', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context), 
-            child: const Text('Batal', style: TextStyle(color: Colors.blueAccent))
+            child: const Text('Cancel', style: TextStyle(color: Colors.blueAccent))
           ),
           TextButton(
             onPressed: () async {
@@ -173,7 +173,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
                 setState(() {});
               }
             },
-            child: const Text('Hapus', style: TextStyle(color: Colors.redAccent)),
+            child: const Text('Delete', style: TextStyle(color: Colors.redAccent)),
           ),
         ],
       ),
@@ -185,13 +185,12 @@ class _AdminProductPageState extends State<AdminProductPage> {
     final token = Provider.of<AuthProvider>(context).token;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C0C0D), // Tema gelap
+      backgroundColor: const Color(0xFF0C0C0D),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C0C0D),
         elevation: 0,
         centerTitle: true,
-        toolbarHeight: 80, // Konsisten dengan User Page
-        // 1. UPDATE: TULISAN DIGANTI LOGO
+        toolbarHeight: 80,
         title: Image.asset(
           'assets/images/logo_retail.png',
           height: 90,

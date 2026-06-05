@@ -6,12 +6,8 @@ const db = require('../config/db');
 const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios');
 
-// Inisialisasi Google Client ID dari .env
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-/**
- * Fungsi bantuan untuk generate JWT Token aplikasi kita
- */
 const generateToken = (user) => {
     return jwt.sign(
         { id: user.id, role: user.role },
@@ -20,20 +16,16 @@ const generateToken = (user) => {
     );
 };
 
-/**
- * 1. Endpoint Login Google (Hybrid: Mendukung ID Token & Access Token)
- */
 router.post('/google-login', async (req, res) => {
     const { idToken } = req.body; 
 
     if (!idToken) {
-        return res.status(400).json({ message: 'Token Google tidak ditemukan!' });
+        return res.status(400).json({ message: 'Google token not found!' });
     }
 
     try {
         let payload;
 
-        // LANGKAH 1: Coba verifikasi sebagai ID TOKEN (Biasanya dari Mobile/Android)
         try {
             const ticket = await client.verifyIdToken({
                 idToken: idToken,
@@ -41,28 +33,24 @@ router.post('/google-login', async (req, res) => {
             });
             payload = ticket.getPayload();
         } catch (e) {
-            // LANGKAH 2: Jika gagal, coba verifikasi sebagai ACCESS TOKEN (Sering dari Flutter Web)
-            console.log("Verifikasi ID Token gagal, mencoba verifikasi via Google UserInfo API...");
+            console.log("Token ID verification failed, try verify via Google UserInfo API");
             const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${idToken}`);
             payload = response.data;
             
-            // Map data dari UserInfo API agar strukturnya sama dengan ticket.getPayload()
             if (payload && !payload.sub) payload.sub = payload.id;
             if (payload && !payload.picture) payload.picture = payload.avatar;
         }
 
         if (!payload || (!payload.email && !payload.sub)) {
-            throw new Error("Gagal mendapatkan data valid dari Google.");
+            throw new Error("Failed to get valid data from Google");
         }
 
         const { email, name, sub: google_id, picture: avatar_url } = payload;
 
-        // 2. Cek apakah user sudah ada di database
         let [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
         let user = users[0];
 
         if (!user) {
-            // Jika belum ada, otomatis register sebagai 'user'
             const [result] = await db.execute(
                 'INSERT INTO users (name, email, google_id, role, avatar_url, wallet) VALUES (?, ?, ?, ?, ?, ?)',
                 [name || 'Trailblazer', email, google_id, 'user', avatar_url || null, 0]
@@ -71,23 +59,20 @@ router.post('/google-login', async (req, res) => {
             const [newUsers] = await db.execute('SELECT * FROM users WHERE id = ?', [result.insertId]);
             user = newUsers[0];
         } else {
-            // Jika email sudah ada, pastikan google_id dan avatar diperbarui
             await db.execute(
                 'UPDATE users SET google_id = ?, avatar_url = ? WHERE id = ?',
                 [google_id, avatar_url || user.avatar_url, user.id]
             );
 
-            // Ambil ulang data terbaru dari DB
             const [updatedUsers] = await db.execute('SELECT * FROM users WHERE id = ?', [user.id]);
             user = updatedUsers[0];
         }
 
-        // 3. Generate JWT Token untuk sesi di aplikasi
         const token = generateToken(user);
 
         res.json({
             success: true,
-            message: 'Login Google berhasil!',
+            message: 'Google login success!',
             token: token,
             user: { 
                 id: user.id, 
@@ -101,18 +86,16 @@ router.post('/google-login', async (req, res) => {
 
     } catch (error) {
         console.error('Google Login Error:', error.message);
-        res.status(401).json({ message: 'Otentikasi Google gagal atau token tidak valid.' });
+        res.status(401).json({ message: 'Google authentication failed or invalid token' });
     }
 });
 
-/**
- * 2. Endpoint Login Manual (Email & Password)
- */
+
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ message: 'Email dan password harus diisi!' });
+        return res.status(400).json({ message: 'Email and password are required!' });
     }
 
     try {
@@ -120,19 +103,19 @@ router.post('/login', async (req, res) => {
         const user = users[0];
 
         if (!user || !user.password) {
-            return res.status(401).json({ message: 'Akun tidak ditemukan atau gunakan Login Google.' });
+            return res.status(401).json({ message: 'Account not found or use Google Login.' });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: 'Email atau password salah!' });
+            return res.status(401).json({ message: 'Email or password is incorrect!' });
         }
 
         const token = generateToken(user);
 
         res.json({
             success: true,
-            message: 'Login berhasil!',
+            message: 'Login successful!',
             token: token,
             user: { 
                 id: user.id, 
@@ -145,24 +128,21 @@ router.post('/login', async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
+        res.status(500).json({ message: 'A problem occurred on the server.' });
     }
 });
 
-/**
- * 3. Endpoint Register Manual
- */
 router.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-        return res.status(400).json({ message: 'Data tidak lengkap!' });
+        return res.status(400).json({ message: 'Data not complete!' });
     }
 
     try {
         const [existingUsers] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
         if (existingUsers.length > 0) {
-            return res.status(400).json({ message: 'Email sudah terdaftar!' });
+            return res.status(400).json({ message: 'Email already registered!' });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -175,11 +155,11 @@ router.post('/register', async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'Registrasi berhasil! Silakan login.',
+            message: 'Registration successful! Please login.',
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Gagal melakukan registrasi.' });
+        res.status(500).json({ message: 'Failed to register.' });
     }
 });
 

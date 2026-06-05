@@ -4,7 +4,6 @@ const db = require('../config/db');
 const verifyToken = require('../middleware/authMiddleware');
 const isAdmin = require('../middleware/adminMiddleware');
 
-// 1. RETRIEVE: Mengambil semua produk (Bisa diakses user & admin)
 router.get('/', verifyToken, async (req, res) => {
     try {
         const [products] = await db.execute('SELECT * FROM products ORDER BY created_at DESC');
@@ -15,7 +14,6 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
-// 2. CREATE: Menambah produk baru (HANYA ADMIN)
 router.post('/', verifyToken, isAdmin, async (req, res) => {
     const { name, type, description, stock, image_url, price } = req.body;
 
@@ -36,7 +34,6 @@ router.post('/', verifyToken, isAdmin, async (req, res) => {
     }
 });
 
-// 3. UPDATE: Mengedit produk (HANYA ADMIN)
 router.put('/:id', verifyToken, isAdmin, async (req, res) => {
     const productId = req.params.id;
     const { name, type, description, stock, image_url, price } = req.body;
@@ -58,7 +55,6 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
     }
 });
 
-// 4. DELETE: Menghapus produk (HANYA ADMIN)
 router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     const productId = req.params.id;
 

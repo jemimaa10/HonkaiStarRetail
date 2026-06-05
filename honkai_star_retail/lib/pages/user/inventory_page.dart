@@ -38,7 +38,7 @@ class InventoryPageState extends State<InventoryPage> {
       if (mounted) {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mengambil inventory: $e')),
+          SnackBar(content: Text('Failed to get inventory!: $e')),
         );
       }
     }
@@ -54,7 +54,7 @@ class InventoryPageState extends State<InventoryPage> {
           ? ListView(
               children: const [
                 SizedBox(height: 200),
-                Center(child: Text("Inventory kamu masih kosong.")),
+                Center(child: Text("Your inventory is still empty.")),
               ],
             )
           : ListView.builder(
@@ -64,13 +64,11 @@ class InventoryPageState extends State<InventoryPage> {
               itemBuilder: (context, index) {
                 final item = inventoryItems[index];
                 
-                // 1. Logika Nama Produk
                 final String displayName = item['name'] ?? 
                                            item['product_name'] ?? 
                                            item['product']?['name'] ?? 
                                            'Item';
 
-                // 2. Logika URL Gambar (Cek berbagai kemungkinan key dari API)
                 final String? imageUrl = item['image_url'] ?? 
                                          item['imageUrl'] ?? 
                                          item['product']?['image_url'];
@@ -81,7 +79,6 @@ class InventoryPageState extends State<InventoryPage> {
                   elevation: 2,
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    // --- PERBAIKAN: MENGGUNAKAN GAMBAR ASLI ITEM ---
                     leading: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: imageUrl != null && imageUrl.isNotEmpty
@@ -114,7 +111,7 @@ class InventoryPageState extends State<InventoryPage> {
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top :4.0),
                       child: Text(
-                        'Kuantitas: ${item['quantity']}',
+                        'Quantity: ${item['quantity']}',
                         style: TextStyle(color: Colors.grey[400]),
                       ),
                     ),
