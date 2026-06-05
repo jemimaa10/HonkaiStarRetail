@@ -1,5 +1,3 @@
-admin kan gapunya wallet, hanya bisa crud produk. kalau gini bener ga
-
 -- ============================================================
 --  HONKAI STAR RETAIL — Database Schema
 --  MySQL 8.x  |  XAMPP 8.2.12
