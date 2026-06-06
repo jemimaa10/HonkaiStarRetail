@@ -55,6 +55,27 @@ class CartService {
     }
   }
 
+  // --- PERBAIKAN: Mengubah productId menjadi cartId agar sesuai router.put('/:id') ---
+  static Future<bool> updateCartQuantity(String token, int cartId, int quantity) async {
+    final url = Uri.parse('${AppConstants.baseUrl}/cart/$cartId');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'quantity': quantity}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Error updateCartQuantity: $e");
+      return false;
+    }
+  }
+
   static Future<Map<String, dynamic>> checkout(String token) async {
     final url = Uri.parse('${AppConstants.baseUrl}/cart/checkout');
 
@@ -86,8 +107,9 @@ class CartService {
     }
   }
   
-  static Future<bool> removeFromCart(String token, int productId) async {
-    final url = Uri.parse('${AppConstants.baseUrl}/cart/$productId');
+  // --- PERBAIKAN: Mengubah productId menjadi cartId agar sesuai router.delete('/:id') ---
+  static Future<bool> removeFromCart(String token, int cartId) async {
+    final url = Uri.parse('${AppConstants.baseUrl}/cart/$cartId');
     try {
       final response = await http.delete(
         url,
@@ -98,5 +120,10 @@ class CartService {
       print("Error removeFromCart: $e");
       return false;
     }
+  }
+
+  // --- PERBAIKAN: Alias menggunakan parameter cartId untuk cart_page.dart ---
+  static Future<bool> deleteCartItem(String token, int cartId) async {
+    return await removeFromCart(token, cartId);
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter; // WAJIB DIIMPORT UNTUK EFEK BLUR GLOBAL
 import 'package:flutter/material.dart';
 import 'market_page.dart';
 import 'inventory_page.dart';
@@ -33,8 +34,11 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0C0C0D),
+      // Membuat background meluncur menembus area AppBar agar rapi
+      extendBodyBehindAppBar: true, 
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0C0C0D),
+        backgroundColor: Colors.transparent, // Diubah ke transparan agar background terlihat
         elevation: 0,
         centerTitle: true,
         toolbarHeight: 80, 
@@ -76,14 +80,42 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
       ),
 
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
+      // --- STRUKTUR BACKGOUND BLUR GLOBAL UNTUK SEMUA TAB ---
+      body: Stack(
+        children: [
+          // LAYER 1: Gambar Background dari URL
+          Positioned.fill(
+            child: Image.network(
+              'https://upload-os-bbs.hoyolab.com/upload/2023/01/28/17138284/85778450a3fbe5b61c4c0c2b47b82dc2_2925831787640733185.png', // Samakan atau sesuaikan dengan tema login
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+
+          // LAYER 2: Efek Blur Global + Tint Gelap Semitransparan
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Blur sedikit lebih tinggi untuk kenyamanan baca data
+              child: Container(
+                color: Colors.black.withOpacity(0.55), // Ditambah sedikit opacity agar item list/grid lebih terbaca
+              ),
+            ),
+          ),
+
+          // LAYER 3: Konten Halaman Utama (Menggunakan SafeArea agar tidak menabrak notch HP)
+          SafeArea(
+            bottom: false, // Biarkan konten meluncur ke bawah menembus navbar
+            child: IndexedStack(
+              index: _selectedIndex,
+              children: _pages,
+            ),
+          ),
+        ],
       ),
 
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF0C0C0D),
+        backgroundColor: const Color(0xFF0C0C0D).withOpacity(0.9), // Sedikit transparan agar blend dengan background
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {

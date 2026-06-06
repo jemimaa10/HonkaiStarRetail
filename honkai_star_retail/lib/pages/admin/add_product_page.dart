@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter; // WAJIB DIIMPORT UNTUK EFEK BLUR BACKGROUND
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -53,8 +54,9 @@ class _AdminProductPageState extends State<AdminProductPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0C0C0D),
+      extendBodyBehindAppBar: true, // 1. Membuat background meluncur penuh menembus batas AppBar atas
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0C0C0D),
+        backgroundColor: Colors.transparent, // 2. Diubah ke transparan agar gambar latar belakang tembus kelihatan
         elevation: 0,
         centerTitle: true,
         toolbarHeight: 80,
@@ -73,74 +75,105 @@ class _AdminProductPageState extends State<AdminProductPage> {
           )
         ],
       ),
-      body: FutureBuilder<List<ProductModel>>(
-        future: ProductService.getAllProducts(token!),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text('No products yet.', style: TextStyle(color: Colors.white70)),
-            );
-          }
+      // 3. STRUKTUR STACK UNTUK LAPISAN BACKGROUND BARU
+      body: Stack(
+        children: [
+          // LAYER 1: Gambar Latar Belakang .png Pilihanmu dari Hoyolab
+          Positioned.fill(
+            child: Image.network(
+              'https://upload-os-bbs.hoyolab.com/upload/2023/01/28/17138284/85778450a3fbe5b61c4c0c2b47b82dc2_2925831787640733185.png',
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
 
-          final products = snapshot.data!;
+          // LAYER 2: Efek Keburaman (Blur) + Lapisan Transparan Gelap
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0), // Keburaman standar (8.0)
+              child: Container(
+                color: Colors.black.withOpacity(0.55), // Tint penggelap agar kontras tulisan terjaga
+              ),
+            ),
+          ),
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return Card(
-                color: const Color(0xFF1A1A1A),
-                margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(10),
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: product.imageUrl != null 
-                      ? Image.network(product.imageUrl!, width: 60, height: 60, fit: BoxFit.cover)
-                      : const Icon(Icons.image_not_supported, color: Colors.white24),
-                  ),
-                  title: Text(
-                    product.name,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: Text(
-                      'Type: ${product.type} | Stock: ${product.stock}',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit_note, color: Colors.blueAccent, size: 28),
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AdminProductForm(product: product),
+          // LAYER 3: Konten Utama (FutureBuilder List Produk Admin)
+          SafeArea(
+            child: FutureBuilder<List<ProductModel>>(
+              future: ProductService.getAllProducts(token!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                    child: Text('No products yet.', style: TextStyle(color: Colors.white70)),
+                  );
+                }
+
+                final products = snapshot.data!;
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return Card(
+                      // Mengubah warna kartu dari hitam solid menjadi abu-abu gelap semitransparan agar menyatu dengan background blur
+                      color: const Color(0xFF151617).withOpacity(0.85),
+                      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.white.withOpacity(0.08), width: 1), // Garis tepi tipis estetik
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(10),
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: product.imageUrl != null 
+                            ? Image.network(product.imageUrl!, width: 60, height: 60, fit: BoxFit.cover)
+                            : const Icon(Icons.image_not_supported, color: Colors.white24),
+                        ),
+                        title: Text(
+                          product.name,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Text(
+                            'Type: ${product.type} | Stock: ${product.stock}',
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit_note, color: Colors.blueAccent, size: 28),
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AdminProductForm(product: product),
+                                  ),
+                                );
+                                if (result == true) setState(() {});
+                              },
                             ),
-                          );
-                          if (result == true) setState(() {});
-                        },
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                              onPressed: () => _deleteProduct(token, product.id!),
+                            ),
+                          ],
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                        onPressed: () => _deleteProduct(token, product.id!),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,

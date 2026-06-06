@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter; // Diperlukan untuk efek blur local jika nanti ingin di-tweak
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -27,7 +28,8 @@ class _MarketPageState extends State<MarketPage> {
     final token = authProvider.token;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      // 1. KUNCI UTAMA: Diubah ke transparan agar gambar dari MainNavigation tembus
+      backgroundColor: Colors.transparent, 
       body: RefreshIndicator(
         onRefresh: _refreshProducts,
         color: Colors.blueAccent,
@@ -38,7 +40,7 @@ class _MarketPageState extends State<MarketPage> {
                 future: ProductService.getAllProducts(token),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
                   }
                   
                   if (snapshot.hasError) {
@@ -49,8 +51,9 @@ class _MarketPageState extends State<MarketPage> {
                           const Text('Failed to load products', style: TextStyle(color: Colors.white)),
                           const SizedBox(height: 10),
                           ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
                             onPressed: _refreshProducts,
-                            child: const Text('Try again'),
+                            child: const Text('Try again', style: TextStyle(color: Colors.white)),
                           ),
                         ],
                       ),

@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter; // WAJIB DIIMPORT UNTUK EFEK BLUR BACKGROUND
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -37,16 +38,20 @@ class _AdminProductPageState extends State<AdminProductPage> {
         final products = snapshot.data!;
 
         return ListView.builder(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           itemCount: products.length,
           itemBuilder: (context, index) {
             final product = products[index];
             
             return Card(
-              color: const Color(0xFF1A1A1A),
+              // Diubah menjadi pekat semitransparan agar menyatu dengan latar belakang gambar
+              color: const Color(0xFF151617).withOpacity(0.85),
               elevation: 0,
               margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.white.withOpacity(0.08), width: 1), // Efek border neon tipis
+              ),
               child: ListTile(
                 contentPadding: const EdgeInsets.all(10),
                 leading: ClipRRect(
@@ -186,8 +191,9 @@ class _AdminProductPageState extends State<AdminProductPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0C0C0D),
+      extendBodyBehindAppBar: true, // 1. Membuat background naik melewati batas AppBar
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0C0C0D),
+        backgroundColor: Colors.transparent, // 2. Diubah ke transparan agar background tembus
         elevation: 0,
         centerTitle: true,
         toolbarHeight: 80,
@@ -197,7 +203,34 @@ class _AdminProductPageState extends State<AdminProductPage> {
           fit: BoxFit.contain,
         ),
       ),
-      body: _pages(token!)[_selectedIndex],
+      // 3. BACKGROUND STRUKTUR STACK GLOBAL DI ELEMENT UTAMA
+      body: Stack(
+        children: [
+          // LAYER 1: Gambar Latar Belakang Baru Pilihanmu (.png)
+          Positioned.fill(
+            child: Image.network(
+              'https://upload-os-bbs.hoyolab.com/upload/2023/01/28/17138284/85778450a3fbe5b61c4c0c2b47b82dc2_2925831787640733185.png',
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+
+          // LAYER 2: Efek Blur + Tint Kegelapan Semitransparan
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // Blur 5.0 biar gambar barumu tetep kelihatan manis siluetnya
+              child: Container(
+                color: Colors.black.withOpacity(0.55), 
+              ),
+            ),
+          ),
+
+          // LAYER 3: Konten Halaman Utama (Daftar Produk atau Profil)
+          SafeArea(
+            child: _pages(token!)[_selectedIndex],
+          ),
+        ],
+      ),
       floatingActionButton: _selectedIndex == 0 
         ? FloatingActionButton(
             backgroundColor: Colors.blueAccent,
@@ -212,7 +245,7 @@ class _AdminProductPageState extends State<AdminProductPage> {
           )
         : null,
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF0C0C0D),
+        backgroundColor: const Color(0xFF0C0C0D).withOpacity(0.9), // Diberi opacity tipis biar menyatu
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         selectedItemColor: Colors.blueAccent,
