@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter; // Diperlukan untuk efek blur local jika nanti ingin di-tweak
+import 'dart:ui' show ImageFilter; 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';

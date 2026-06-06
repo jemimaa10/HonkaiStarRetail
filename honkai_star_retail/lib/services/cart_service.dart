@@ -55,7 +55,6 @@ class CartService {
     }
   }
 
-  // --- PERBAIKAN: Mengubah productId menjadi cartId agar sesuai router.put('/:id') ---
   static Future<bool> updateCartQuantity(String token, int cartId, int quantity) async {
     final url = Uri.parse('${AppConstants.baseUrl}/cart/$cartId');
 
@@ -107,7 +106,6 @@ class CartService {
     }
   }
   
-  // --- PERBAIKAN: Mengubah productId menjadi cartId agar sesuai router.delete('/:id') ---
   static Future<bool> removeFromCart(String token, int cartId) async {
     final url = Uri.parse('${AppConstants.baseUrl}/cart/$cartId');
     try {
@@ -122,7 +120,6 @@ class CartService {
     }
   }
 
-  // --- PERBAIKAN: Alias menggunakan parameter cartId untuk cart_page.dart ---
   static Future<bool> deleteCartItem(String token, int cartId) async {
     return await removeFromCart(token, cartId);
   }

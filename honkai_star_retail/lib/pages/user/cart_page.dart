@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter; // WAJIB DIIMPORT UNTUK EFEK BLUR BACKGROUND
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -13,9 +13,8 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   bool isCheckingOut = false;
-  Key _refreshKey = UniqueKey(); // Digunakan untuk refresh data setelah update/delete
+  Key _refreshKey = UniqueKey(); 
 
-  // Simpan data local snapshot agar bisa dimanipulasi secara instan (Optimistic UI)
   List<dynamic>? _localCartItems;
 
   double parseToDouble(dynamic value) {
@@ -24,16 +23,13 @@ class _CartPageState extends State<CartPage> {
     return double.tryParse(value.toString()) ?? 0.0;
   }
 
-  // Fungsi memicu pembaruan/refresh UI local
   void _triggerRefresh() {
     setState(() {
-      _localCartItems = null; // Reset local data agar mengambil yang terbaru dari server
+      _localCartItems = null; 
       _refreshKey = UniqueKey();
     });
   }
 
-  // --- AKSI UPDATE KUANTITAS (TAMBAH / KURANG) ---
-  // PERBAIKAN: Mengganti productId menjadi cartId agar sinkron dengan backend
   Future<void> _updateQuantity(String token, int cartId, int newQuantity, int index) async {
     if (cartId == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,17 +43,14 @@ class _CartPageState extends State<CartPage> {
       return;
     }
     
-    // Trik Optimistic UI: Ubah angka di layar secara instan sebelum menembak API backend
     setState(() {
       if (_localCartItems != null && _localCartItems!.length > index) {
         _localCartItems![index]['quantity'] = newQuantity;
       }
     });
     
-    // Kirim update ke backend menggunakan cartId
     final success = await CartService.updateCartQuantity(token, cartId, newQuantity);
     
-    // Jika gagal, kembalikan data ke versi asli server demi sinkronisasi stok
     if (!success) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,13 +59,10 @@ class _CartPageState extends State<CartPage> {
       }
       _triggerRefresh();
     } else {
-      // Jika sukses, tetep panggil refresh untuk memastikan kalkulasi harga global akurat dengan server
       _triggerRefresh();
     }
   }
 
-  // --- AKSI HAPUS ITEM DARI KERANJANG ---
-  // PERBAIKAN: Mengganti productId menjadi cartId
   Future<void> _handleDeleteItem(String token, int cartId) async {
     if (cartId == 0) return;
 
@@ -180,7 +170,6 @@ class _CartPageState extends State<CartPage> {
                   return const Center(child: Text('Failed to get cart items!', style: TextStyle(color: Colors.white)));
                 }
                 
-                // Inisialisasi local data dari server snapshot jika belum terisi
                 if (snapshot.hasData && _localCartItems == null) {
                   _localCartItems = List<dynamic>.from(snapshot.data!);
                 }
@@ -209,7 +198,6 @@ class _CartPageState extends State<CartPage> {
                           int qty = int.tryParse(item['quantity'].toString()) ?? 0;
                           double subTotal = price * qty;
                           
-                          // PERBAIKAN UTAMA: Ambil item['id'] yang merujuk pada cart.id di database backend kamu
                           int cartId = int.tryParse(item['id']?.toString() ?? '') ?? 0;
 
                           return Card(
@@ -260,7 +248,7 @@ class _CartPageState extends State<CartPage> {
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          // PERBAIKAN: Melemparkan variabel cartId (bukan productId)
+                                          
                                           _buildQtyActionButton(Icons.remove, () => _updateQuantity(token, cartId, qty - 1, index)),
                                           Padding(
                                             padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -269,10 +257,10 @@ class _CartPageState extends State<CartPage> {
                                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                                             ),
                                           ),
-                                          // PERBAIKAN: Melemparkan variabel cartId (bukan productId)
+                                          
                                           _buildQtyActionButton(Icons.add, () => _updateQuantity(token, cartId, qty + 1, index)),
                                           const SizedBox(width: 12),
-                                          // PERBAIKAN: Melemparkan variabel cartId (bukan productId)
+                                          
                                           IconButton(
                                             padding: EdgeInsets.zero,
                                             constraints: const BoxConstraints(),

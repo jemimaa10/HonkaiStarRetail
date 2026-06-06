@@ -14,7 +14,6 @@ class ProfilePage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Bingkai lingkaran avatar disamakan dengan versi Admin
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -34,7 +33,6 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           
-          // Nama User (Warna putih murni, font size diselaraskan)
           Text(
             user?['name'] ?? 'User', 
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
@@ -47,7 +45,6 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           
-          // TOMBOL LOGOUT: Struktur ElevatedButton.icon & Styling disamakan dengan Admin
           SizedBox(
             width: 200,
             height: 50,

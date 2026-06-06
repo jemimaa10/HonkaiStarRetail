@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter; // WAJIB DIIMPORT UNTUK EFEK BLUR GLOBAL
+import 'dart:ui' show ImageFilter; 
 import 'package:flutter/material.dart';
 import 'market_page.dart';
 import 'inventory_page.dart';
@@ -35,10 +35,9 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0C0C0D),
-      // Membuat background meluncur menembus area AppBar agar rapi
       extendBodyBehindAppBar: true, 
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // Diubah ke transparan agar background terlihat
+        backgroundColor: Colors.transparent, 
         elevation: 0,
         centerTitle: true,
         toolbarHeight: 80, 
@@ -80,10 +79,8 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
       ),
 
-      // --- STRUKTUR BACKGOUND BLUR GLOBAL UNTUK SEMUA TAB ---
       body: Stack(
         children: [
-          // LAYER 1: Gambar Background dari URL
           Positioned.fill(
             child: Image.network(
               'https://upload-os-bbs.hoyolab.com/upload/2023/01/28/17138284/85778450a3fbe5b61c4c0c2b47b82dc2_2925831787640733185.png', // Samakan atau sesuaikan dengan tema login
@@ -92,7 +89,6 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
           ),
 
-          // LAYER 2: Efek Blur Global + Tint Gelap Semitransparan
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Blur sedikit lebih tinggi untuk kenyamanan baca data
@@ -102,7 +98,6 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
           ),
 
-          // LAYER 3: Konten Halaman Utama (Menggunakan SafeArea agar tidak menabrak notch HP)
           SafeArea(
             bottom: false, // Biarkan konten meluncur ke bawah menembus navbar
             child: IndexedStack(

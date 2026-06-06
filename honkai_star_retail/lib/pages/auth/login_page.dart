@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter; // WAJIB DIIMPORT UNTUK EFEK BLUR
+import 'dart:ui' show ImageFilter; 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -112,7 +112,6 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0C0C0D),
-      // Membuat background naik menembus status bar atas HP
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -121,26 +120,24 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: Stack(
         children: [
-          // --- LAYER 1: GAMBAR BACKGROUND DARI URL ---
           Positioned.fill(
             child: Image.network(
-              'https://upload-os-bbs.hoyolab.com/upload/2023/01/28/17138284/85778450a3fbe5b61c4c0c2b47b82dc2_2925831787640733185.png', // Ganti dengan URL background HSR pilihanmu
+              'https://upload-os-bbs.hoyolab.com/upload/2023/01/28/17138284/85778450a3fbe5b61c4c0c2b47b82dc2_2925831787640733185.png',
               fit: BoxFit.cover,
               filterQuality: FilterQuality.high,
             ),
           ),
 
-          // --- LAYER 2: EFEK BLUR + LAPISAN GELAP ---
+          
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0), // Intensitas blur
+              filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0), 
               child: Container(
-                color: Colors.black.withOpacity(0.2), // Gelap transparan agar teks kontras
+                color: Colors.black.withOpacity(0.2), 
               ),
             ),
           ),
 
-          // --- LAYER 3: KONTEN UTAMA FORM ---
           SafeArea(
             child: Center(
               child: SingleChildScrollView(

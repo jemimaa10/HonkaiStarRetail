@@ -1,4 +1,4 @@
-import 'dart:ui' show ImageFilter; // WAJIB DIIMPORT UNTUK EFEK BLUR BACKGROUND
+import 'dart:ui' show ImageFilter; 
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
@@ -71,16 +71,16 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0C0C0D),
-      extendBodyBehindAppBar: true, // 1. Membuat background naik penuh menembus area AppBar atas
+      extendBodyBehindAppBar: true, 
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // 2. Diubah ke transparan agar gambar latar belakang tembus
+        backgroundColor: Colors.transparent, 
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // 3. STRUKTUR STACK UNTUK LAYER BACKGROUND KOSMIK GLOBAL
+      
       body: Stack(
         children: [
-          // LAYER BACKGROUND 1: Gambar Latar Belakang Pilihanmu dari Hoyolab
+  
           Positioned.fill(
             child: Image.network(
               'https://upload-os-bbs.hoyolab.com/upload/2023/01/28/17138284/85778450a3fbe5b61c4c0c2b47b82dc2_2925831787640733185.png',
@@ -89,7 +89,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
 
-          // LAYER BACKGROUND 2: Efek Keburaman (Blur) + Lapisan Transparan Gelap
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0), // Keburaman standar (8.0)
@@ -99,7 +98,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
 
-          // LAYER 3: Konten Utama Form Register (Dibungkus SafeArea)
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -137,7 +135,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 15),
 
-                    // Input Email
                     TextField(
                       controller: emailController,
                       style: const TextStyle(color: Colors.white),
@@ -160,7 +157,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 15),
 
-                    // Input Password
                     TextField(
                       controller: passwordController,
                       obscureText: _obscurePassword,
@@ -191,7 +187,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     
                     const SizedBox(height: 35),
 
-                    // Tombol Submit Register
                     SizedBox(
                       width: double.infinity,
                       height: 55,
